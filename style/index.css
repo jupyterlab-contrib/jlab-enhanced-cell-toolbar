@@ -1,0 +1,48 @@
+/* 
+.jp-celltagswidget {
+  position: absolute;
+  --jp-celltagswidget-pos: var(--jp-border-width);
+  top: var(--jp-celltagswidget-pos);
+  right: var(--jp-celltagswidget-pos);
+  padding-top: calc(var(--jp-code-padding) - var(--jp-celltagswidget-pos));
+  padding-right: calc(var(--jp-code-padding) - var(--jp-celltagswidget-pos));
+  z-index: 10;
+}
+.jp-MarkdownCell.jp-mod-rendered .jp-celltagswidget {
+  --jp-celltagswidget-pos: 0px;
+  padding-top: 0px;
+  line-height: var(--jp-content-line-height);
+}
+.jp-Notebook.jp-mod-editMode .jp-Cell.jp-mod-active .jp-celltagswidget {
+  --jp-celltagswidget-pos: calc(var(--jp-border-width) + 2px);
+} */
+
+.jp-enh-cell-toolbar {
+  display: flex;
+  flex-direction: row;
+  margin-left: calc(
+    var(--jp-cell-collapser-width) + var(--jp-cell-prompt-width)
+  );
+}
+
+.jp-enh-cell-menu {
+  display: flex;
+  flex-direction: row;
+}
+
+.jp-enh-cell-menu button {
+  height: 16px;
+}
+
+.jp-enh-cell-tags {
+  display: flex;
+  flex-direction: row;
+}
+
+.jp-enh-cell-toolbar .tag {
+  font-size: 0.8em;
+  height: 18px;
+  margin: 0px 2px;
+  padding: 0px 2px;
+  border-radius: 4px;
+}

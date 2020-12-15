@@ -1,0 +1,18 @@
+{
+  "title": "Cell Toolbar",
+  "description": "Cell Toolbar Settings.",
+  "properties": {
+    "defaultTags": {
+      "title": "List of Default Tags",
+      "description": "List of tags to always display for quick selection.",
+      "default": ["parameters"],
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[\\w-]+$"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "type": "object"
+}
