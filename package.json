@@ -63,5 +63,8 @@
   "jupyterlab": {
     "extension": true,
     "schemaDir": "schema"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
