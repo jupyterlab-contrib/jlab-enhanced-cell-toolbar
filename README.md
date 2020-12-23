@@ -1,4 +1,4 @@
-# jlab-enhanced-cell-toolbar
+# @jlab-enhanced/cell-toolbar
 
 ![Github Actions Status](https://github.com/fcollonval/jlab-enhanced-cell-toolbar/workflows/Build/badge.svg)[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fcollonval/jlab-enhanced-cell-toolbar/main?urlpath=lab)
 
@@ -13,13 +13,13 @@ A cell toolbar for JupyterLab.
 ## Install
 
 ```bash
-jupyter labextension install jlab-enhanced-cell-toolbar
+jupyter labextension install @jlab-enhanced/cell-toolbar
 ```
 
 ## Uninstall
 
 ```bash
-jupyter labextension uninstall jlab-enhanced-cell-toolbar
+jupyter labextension uninstall @jlab-enhanced/cell-toolbar
 ```
 
 ## Alternatives
