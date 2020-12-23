@@ -36,19 +36,14 @@ _("jlpm")
 _("jupyter", "labextension", "list")
 
 # install the labextension
-_("jupyter", "labextension", "install", "--no-build",
-    *[
-        ext.strip()
-        for ext in LAB_EXTENSIONS.read_text().splitlines()
-        if ext.strip() and not ext.strip().startswith("#")
-    ]
-)
+_("jupyter", "labextension", "install", "--no-build", ".")
 
 # verify the list of extensions
 _("jupyter", "labextension", "list")
 
 # verify the list of extensions
-_("jupyter", "lab", "build", "--debug", "--dev-build=False", "--minimize=False")
+_("jupyter", "lab", "build", "--debug", "--dev-build=False")
+# "--minimize=False")
 
 # verify the list of extensions one last time
 _("jupyter", "labextension", "list")
