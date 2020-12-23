@@ -1,42 +1,43 @@
-import { PanelLayout, Widget } from '@lumino/widgets';
-import { CommandRegistry } from '@lumino/commands';
-import {
-  addIcon,
-  caretDownIcon,
-  caretUpIcon,
-  checkIcon,
-  closeIcon,
-  LabIcon,
-  markdownIcon,
-  refreshIcon,
-  runIcon,
-  stopIcon
-} from '@jupyterlab/ui-components';
 import { ToolbarButton } from '@jupyterlab/apputils';
+import { markdownIcon } from '@jupyterlab/ui-components';
+import { CommandRegistry } from '@lumino/commands';
+import { PanelLayout, Widget } from '@lumino/widgets';
+import { codeIcon, deleteIcon, formatIcon } from './icon';
+import { ICellMenuItem } from './tokens';
 
 const CELL_MENU_CLASS = 'jp-enh-cell-menu';
 
-interface ICellMenuItem {
-  command: string;
-  icon: LabIcon;
-  tooltip?: string;
-  className?: string;
-}
-
 const FOREIGN_COMMANDS: ICellMenuItem[] = [
   // Originate from @jupyterlab/notebook-extension
-  { command: 'notebook:run-cell', icon: runIcon },
-  { command: 'notebook:interrupt-kernel', icon: stopIcon },
-  { command: 'notebook:change-cell-to-code', icon: checkIcon },
-  { command: 'notebook:change-cell-to-markdown', icon: markdownIcon },
-  { command: 'notebook:move-cell-up', icon: caretUpIcon },
-  { command: 'notebook:move-cell-down', icon: caretDownIcon },
-  { command: 'notebook:delete-cell', icon: closeIcon },
-  { command: 'notebook:insert-cell-below', icon: addIcon },
+  {
+    className: 'jp-enh-cell-to-code',
+    command: 'notebook:change-cell-to-code',
+    icon: codeIcon,
+    tooltip: 'Convert to Code Cell'
+  },
+  {
+    className: 'jp-enh-cell-to-md',
+    command: 'notebook:change-cell-to-markdown',
+    icon: markdownIcon,
+    tooltip: 'Convert to Markdown Cell'
+  },
+  {
+    command: 'notebook:delete-cell',
+    icon: deleteIcon,
+    tooltip: 'Delete Selected Cells'
+  },
   // Originate from @ryantam626/jupyterlab_code_formatter
-  { command: 'jupyterlab_code_formatter:format', icon: refreshIcon }
+  {
+    className: 'jp-enh-cell-format',
+    command: 'jupyterlab_code_formatter:format',
+    icon: formatIcon,
+    tooltip: 'Format Cell'
+  }
 ];
 
+/**
+ * Toolbar icon menu container
+ */
 export class CellMenu extends Widget {
   constructor(commands: CommandRegistry) {
     super();

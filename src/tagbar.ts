@@ -13,7 +13,7 @@ import { PanelLayout, Widget } from '@lumino/widgets';
 const CELL_TAGS_CLASS = 'jp-enh-cell-tags';
 
 /**
- * A Tool for tag operations.
+ * A container for cell tags.
  */
 export class TagTool extends Widget {
   /**

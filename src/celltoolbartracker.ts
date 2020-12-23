@@ -7,17 +7,52 @@ import {
   ObservableList
 } from '@jupyterlab/observables';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
+import {
+  addIcon,
+  caretDownEmptyThinIcon,
+  caretUpEmptyThinIcon,
+  runIcon
+} from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { IDisposable } from '@lumino/disposable';
 import { PanelLayout, Widget } from '@lumino/widgets';
-import { CellMenu } from './cellmenu';
 import { CellToolbarWidget } from './celltoolbarwidget';
-import { TagTool } from './tagbar';
+import { PositionedButton } from './positionedbutton';
+import { ICellMenuItem } from './tokens';
+
+const FOREIGN_COMMANDS: ICellMenuItem[] = [
+  // Originate from @jupyterlab/notebook-extension
+  {
+    className: 'jp-enh-cell-run',
+    command: 'notebook:run-cell',
+    icon: runIcon,
+    tooltip: 'Run Selected Cells'
+  },
+  // { className: 'jp-enh-cell-interrupt', command: 'notebook:interrupt-kernel', icon: stopIcon },
+  {
+    className: 'jp-enh-cell-up',
+    command: 'notebook:move-cell-up',
+    icon: caretUpEmptyThinIcon,
+    tooltip: 'Move Selected Cells Up'
+  },
+  {
+    className: 'jp-enh-cell-down',
+    command: 'notebook:move-cell-down',
+    icon: caretDownEmptyThinIcon,
+    tooltip: 'Move Selected Cells Down'
+  },
+  {
+    className: 'jp-enh-cell-insert',
+    command: 'notebook:insert-cell-below',
+    icon: addIcon,
+    tooltip: 'Insert Cell'
+  }
+];
 
 /**
  * Widget cell toolbar class
  */
-const CELL_TOOLBAR_CLASS = 'jp-enh-cell-toolbar';
+const CELL_BAR_CLASS = 'jp-enh-cell-bar';
 
 /**
  * Watch a notebook, and each time a cell is created add a CellTagsWidget to it.
@@ -77,12 +112,30 @@ export class CellToolbarTracker implements IDisposable {
   private _addToolbar(model: ICellModel): void {
     const cell = this._getCell(model);
     if (cell) {
-      const toolbar = new CellToolbarWidget();
-      toolbar.addClass(CELL_TOOLBAR_CLASS);
-      const toolbarLayout = toolbar.layout as PanelLayout;
-      toolbarLayout.addWidget(new CellMenu(this._commands));
-      toolbarLayout.addWidget(new TagTool(model, this._allTags));
+      const toolbar = new CellToolbarWidget(
+        this._commands,
+        model,
+        this._allTags
+      );
+      toolbar.addClass(CELL_BAR_CLASS);
       (cell.layout as PanelLayout).insertWidget(0, toolbar);
+
+      FOREIGN_COMMANDS.forEach(entry => {
+        if (this._commands.hasCommand(entry.command)) {
+          const { className, command, ...others } = entry;
+          const button = new PositionedButton({
+            ...others,
+            callback: (): void => {
+              this._commands.execute(command);
+            }
+          });
+          button.addClass(CELL_BAR_CLASS);
+          if (className) {
+            button.addClass(className);
+          }
+          (cell.layout as PanelLayout).addWidget(button);
+        }
+      });
     }
   }
 
@@ -90,22 +143,17 @@ export class CellToolbarTracker implements IDisposable {
     return this._panel.content.widgets.find(widget => widget.model === model);
   }
 
-  private _findCellHeader(cell: Cell): Widget {
+  private _findToolbarWidgets(cell: Cell): Widget[] {
     const widgets = (cell.layout as PanelLayout).widgets;
 
     // Search for header using the CSS class or use the first one if not found.
-    return (
-      widgets.find(widget => widget.hasClass(CELL_TOOLBAR_CLASS)) || widgets[0]
-    );
+    return widgets.filter(widget => widget.hasClass(CELL_BAR_CLASS)) || [];
   }
 
   private _removeToolbar(model: ICellModel): void {
     const cell = this._getCell(model);
     if (cell) {
-      const toolbar = this._findCellHeader(cell);
-      if (toolbar) {
-        toolbar.dispose();
-      }
+      this._findToolbarWidgets(cell).forEach(widget => widget.dispose());
     }
   }
 
@@ -125,7 +173,7 @@ export class CellToolbarTracker implements IDisposable {
     this._previousDefaultTags = newDefaultTags;
   }
 
-  private _allTags: ObservableList<string> = new ObservableList();
+  private _allTags: ObservableList<string> = new ObservableList<string>();
   private _commands: CommandRegistry;
   private _isDisposed = false;
   private _previousDefaultTags = new Array<string>();

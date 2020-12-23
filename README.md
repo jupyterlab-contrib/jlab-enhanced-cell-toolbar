@@ -4,11 +4,11 @@
 
 A cell toolbar for JupyterLab.
 
-Credits: https://github.com/mje-nz/jupyterlab-show-cell-tags
+![Demonstration](./demo_cell_toolbar.gif)
 
 ## Requirements
 
-* JupyterLab >= 2.0
+- JupyterLab >= 2.0,<3
 
 ## Install
 
@@ -16,9 +16,23 @@ Credits: https://github.com/mje-nz/jupyterlab-show-cell-tags
 jupyter labextension install jlab-enhanced-cell-toolbar
 ```
 
+## Uninstall
+
+```bash
+jupyter labextension uninstall jlab-enhanced-cell-toolbar
+```
+
+## Alternatives
+
+Don't like what you see here? Try these other approaches:
+
+- [jupyterlab-show-cell-tags](https://github.com/mje-nz/jupyterlab-show-cell-tags)
+- [jupyterlab-colabinspired-codecellbtn](https://github.com/eddienko/jupyterlab-colabinspired-codecellbtn)
+- [jupyterlab-codecellbtn](https://github.com/ibqn/jupyterlab-codecellbtn)
+
 ## Contributing
 
-### Install
+### Development Install
 
 The `jlpm` command is JupyterLab's pinned version of
 [yarn](https://yarnpkg.com/) that is installed with JupyterLab. You may use
@@ -50,10 +64,3 @@ jupyter lab --watch
 ```
 
 Now every change will be built locally and bundled into JupyterLab. Be sure to refresh your browser page after saving file changes to reload the extension (note: you'll need to wait for webpack to finish, which can take 10s+ at times).
-
-### Uninstall
-
-```bash
-
-jupyter labextension uninstall jlab-enhanced-cell-toolbar
-```
