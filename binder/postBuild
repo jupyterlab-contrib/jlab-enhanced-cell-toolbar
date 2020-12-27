@@ -26,7 +26,7 @@ def _(*args, **kwargs):
         fails hard if something goes wrong
     """
     print("\n\t", " ".join(args), "\n")
-    return_code = subprocess.call(args, **kwargs)
+    return_code = subprocess.call(args, **kwargs, shell=True)
     if return_code != 0:
         print("\nERROR", return_code, " ".join(args))
         sys.exit(return_code)# install dependencies
