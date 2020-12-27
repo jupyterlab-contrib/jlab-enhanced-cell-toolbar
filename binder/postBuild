@@ -1,11 +1,13 @@
 #!/bin/bash
+set -e
 jlpm
 
 # initially list installed extensions to determine if there are any surprises
 jupyter labextension list
 
 # install the labextension
-jupyter labextension install --no-build .
+jlpm pack
+jupyter labextension install --no-build jlab-enhanced-cell-toolbar-*.tgz
 
 # verify the list of extensions
 jupyter labextension list
