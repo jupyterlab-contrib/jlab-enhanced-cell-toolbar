@@ -30,6 +30,7 @@ def _(*args, **kwargs):
     if return_code != 0:
         print("\nERROR", return_code, " ".join(args))
         sys.exit(return_code)# install dependencies
+
 _("jlpm")
 
 # initially list installed extensions to determine if there are any surprises
@@ -42,8 +43,7 @@ _("jupyter", "labextension", "install", "--no-build", ".")
 _("jupyter", "labextension", "list")
 
 # verify the list of extensions
-_("jupyter", "lab", "build", "--debug", "--dev-build=False")
-# "--minimize=False")
+_("jupyter", "lab", "build", "--debug", "--dev-build=False", "--minimize=True")
 
 # verify the list of extensions one last time
 _("jupyter", "labextension", "list")
