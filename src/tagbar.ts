@@ -31,7 +31,9 @@ export class TagTool extends Widget {
 
     // Update tag list
     const tags: string[] = (model.metadata.get('tags') as string[]) || [];
-    allTags.pushAll(tags); // We don't care about duplicate here so we can remove all occurrences at will
+    if (tags.length > 0) {
+      allTags.pushAll(tags); // We don't care about duplicate here so we can remove all occurrences at will
+    }
     model.metadata.changed.connect(this.onCellMetadataChanged, this);
   }
 
@@ -99,17 +101,18 @@ export class TagTool extends Widget {
   refreshTags(): void {
     const layout = this.layout as PanelLayout;
     const tags: string[] = [...new Set(toArray(this._tagList))];
-
+    const toDispose = new Array<Widget>();
     layout.widgets.forEach(widget => {
       if (widget.id !== 'add-tag') {
         const idx = tags.indexOf((widget as TagWidget).name);
         if (idx < 0) {
-          widget.dispose();
+          toDispose.push(widget);
         } else {
           tags.splice(idx, 1);
         }
       }
     });
+    toDispose.forEach(widget => widget.dispose());
 
     tags.forEach(tag => {
       layout.insertWidget(

@@ -164,9 +164,12 @@ export class CellToolbarTracker implements IDisposable {
     const newDefaultTags =
       (this._settings.composite['defaultTags'] as string[]) || [];
     // Update default tag in shared tag list
-    this._allTags.pushAll(
-      newDefaultTags.filter(tag => !this._previousDefaultTags.includes(tag))
+    const toAdd = newDefaultTags.filter(
+      tag => !this._previousDefaultTags.includes(tag)
     );
+    if (toAdd.length > 0) {
+      this._allTags.pushAll(toAdd);
+    }
     this._previousDefaultTags
       .filter(tag => !newDefaultTags.includes(tag))
       .forEach(tag => this._allTags.removeValue(tag));
