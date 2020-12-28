@@ -7,6 +7,7 @@
   width: 16px;
   position: absolute;
   z-index: 1;
+  cursor: pointer;
 }
 
 .jp-enh-cell-button .jp-icon3[fill] {
@@ -27,7 +28,7 @@
 }
 
 .jp-enh-cell-up {
-  top: 18px;
+  top: 20px;
   left: -10px;
 }
 
@@ -61,6 +62,7 @@
 
 .jp-enh-cell-menu button {
   height: 16px;
+  cursor: pointer;
 }
 
 .jp-ToolbarButton .jp-enh-cell-to-md,
@@ -88,6 +90,7 @@
   margin: 0px 2px;
   padding: 0px 2px;
   border-radius: 4px;
+  cursor: pointer;
   /* Needed to ensure correct display */
   max-width: unset;
 }

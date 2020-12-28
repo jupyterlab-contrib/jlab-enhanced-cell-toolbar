@@ -1,6 +1,6 @@
 # @jlab-enhanced/cell-toolbar
 
-![Github Actions Status](https://github.com/fcollonval/jlab-enhanced-cell-toolbar/workflows/Build/badge.svg) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fcollonval/jlab-enhanced-cell-toolbar/main?urlpath=lab) [![npm](https://img.shields.io/npm/v/@jlab-enhanced/cell-toolbar)](https://www.npmjs.com/package/@jlab-enhanced/cell-toolbar)
+![Github Actions Status](https://github.com/fcollonval/jlab-enhanced-cell-toolbar/workflows/Build/badge.svg) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fcollonval/jlab-enhanced-cell-toolbar/2.x?urlpath=lab) [![npm](https://img.shields.io/npm/v/@jlab-enhanced/cell-toolbar)](https://www.npmjs.com/package/@jlab-enhanced/cell-toolbar)
 
 A cell toolbar for JupyterLab.
 
