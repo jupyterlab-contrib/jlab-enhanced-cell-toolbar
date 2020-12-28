@@ -4,7 +4,7 @@
 
 A cell toolbar for JupyterLab.
 
-![Demonstration](https://raw/demo_cell_toolbar.gif)
+![Demonstration](https://raw.githubusercontent.com/fcollonval/jlab-enhanced-cell-toolbar/main/demo_cell_toolbar.gif)
 
 
 ## Requirements
