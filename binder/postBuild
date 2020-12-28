@@ -1,19 +1,46 @@
-#!/bin/bash
-set -e
-jlpm
+#!/usr/bin/env python3
+""" perform a development install of jlab_enhanced_cell_toolbar
 
-# initially list installed extensions to determine if there are any surprises
-jupyter labextension list
+    On Binder, this will run _after_ the environment has been fully created from
+    the environment.yml in this directory.
+
+    This script should also run locally on Linux/MacOS/Windows:
+
+        python3 binder/postBuild
+"""
+import subprocess
+import sys
+from pathlib import Path
+
+
+ROOT = Path.cwd()
+
+def _(*args, **kwargs):
+    """ Run a command, echoing the args
+
+        fails hard if something goes wrong
+    """
+    print("\n\t", " ".join(args), "\n")
+    return_code = subprocess.call(args, **kwargs)
+    if return_code != 0:
+        print("\nERROR", return_code, " ".join(args))
+        sys.exit(return_code)
+
+# verify the environment is self-consistent before even starting
+_(sys.executable, "-m", "pip", "check")
 
 # install the labextension
-jlpm pack
-jupyter labextension install --no-build jlab-enhanced-cell-toolbar-*.tgz
+_(sys.executable, "-m", "pip", "install", "-e", ".")
 
-# verify the list of extensions
-jupyter labextension list
+# verify the environment the extension didn't break anything
+_(sys.executable, "-m", "pip", "check")
 
-# verify the list of extensions
-jupyter lab build --debug --dev-build=False --minimize=True
+# list the extensions
+_("jupyter", "server", "extension", "list")
 
-# verify the list of extensions one last time
-jupyter labextension list
+# initially list installed extensions to determine if there are any surprises
+_("jupyter", "labextension", "list")
+
+
+print("JupyterLab with jlab_enhanced_cell_toolbar is ready to run with:\n")
+print("\tjupyter lab\n")
