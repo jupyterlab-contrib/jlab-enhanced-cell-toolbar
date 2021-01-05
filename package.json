@@ -7,9 +7,9 @@
     "jupyterlab",
     "jupyterlab-extension"
   ],
-  "homepage": "https://github.com/fcollonval/jlab-enhanced-cell-toolbar",
+  "homepage": "https://github.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar",
   "bugs": {
-    "url": "https://github.com/fcollonval/jlab-enhanced-cell-toolbar/issues"
+    "url": "https://github.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/issues"
   },
   "license": "BSD-3-Clause",
   "author": "Frederic COLLONVAL",
@@ -23,7 +23,7 @@
   "style": "style/index.css",
   "repository": {
     "type": "git",
-    "url": "https://github.com/fcollonval/jlab-enhanced-cell-toolbar.git"
+    "url": "https://github.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar.git"
   },
   "scripts": {
     "build": "tsc",
