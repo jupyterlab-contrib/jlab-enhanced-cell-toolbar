@@ -21,17 +21,18 @@ const FOREIGN_COMMANDS: ICellMenuItem[] = [
     icon: markdownIcon,
     tooltip: 'Convert to Markdown Cell'
   },
-  {
-    command: 'notebook:delete-cell',
-    icon: deleteIcon,
-    tooltip: 'Delete Selected Cells'
-  },
   // Originate from @ryantam626/jupyterlab_code_formatter
   {
     className: 'jp-enh-cell-format',
     command: 'jupyterlab_code_formatter:format',
     icon: formatIcon,
     tooltip: 'Format Cell'
+  },
+  // Originate from @jupyterlab/notebook-extension
+  {
+    command: 'notebook:delete-cell',
+    icon: deleteIcon,
+    tooltip: 'Delete Selected Cells'
   }
 ];
 
