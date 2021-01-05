@@ -33,6 +33,8 @@ export class TagTool extends Widget {
     const tags: string[] = (model.metadata.get('tags') as string[]) || [];
     if (tags.length > 0) {
       allTags.pushAll(tags); // We don't care about duplicate here so we can remove all occurrences at will
+    } else {
+      this.refreshTags(); // Force displaying default tags if no tags specified
     }
     model.metadata.changed.connect(this.onCellMetadataChanged, this);
   }
