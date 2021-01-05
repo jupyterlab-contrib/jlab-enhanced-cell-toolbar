@@ -6,10 +6,9 @@ A cell toolbar for JupyterLab.
 
 ![Demonstration](https://raw.githubusercontent.com/fcollonval/jlab-enhanced-cell-toolbar/main/demo_cell_toolbar.gif)
 
-
 ## Requirements
 
-* JupyterLab >= 3.0
+-   JupyterLab >= 3.0
 
 ## Install
 
@@ -34,7 +33,6 @@ or
 ```bash
 conda remove -c conda-forge jlab-enhanced-cell-toolbar
 ```
-
 
 ## Alternatives
 
