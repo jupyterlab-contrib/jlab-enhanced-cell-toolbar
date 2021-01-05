@@ -1,14 +1,14 @@
 # jlab-enhanced-cell-toolbar
 
-![Github Actions Status](https://github.com/fcollonval/jlab-enhanced-cell-toolbar/workflows/Build/badge.svg) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/fcollonval/jlab-enhanced-cell-toolbar/main?urlpath=lab) [![npm](https://img.shields.io/npm/v/@jlab-enhanced/cell-toolbar)](https://www.npmjs.com/package/@jlab-enhanced/cell-toolbar) [![PyPI](https://img.shields.io/pypi/v/jlab-enhanced-cell-toolbar)](https://pypi.org/project/jlab-enhanced-cell-toolbar)
+![Github Actions Status](https://github.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/workflows/Build/badge.svg) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main?urlpath=lab) [![npm](https://img.shields.io/npm/v/@jlab-enhanced/cell-toolbar)](https://www.npmjs.com/package/@jlab-enhanced/cell-toolbar) [![PyPI](https://img.shields.io/pypi/v/jlab-enhanced-cell-toolbar)](https://pypi.org/project/jlab-enhanced-cell-toolbar)
 
 A cell toolbar for JupyterLab.
 
-![Demonstration](https://raw.githubusercontent.com/fcollonval/jlab-enhanced-cell-toolbar/main/demo_cell_toolbar.gif)
+![Demonstration](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/demo_cell_toolbar.gif)
 
 ## Requirements
 
--   JupyterLab >= 3.0
+- JupyterLab >= 3.0
 
 ## Install
 
