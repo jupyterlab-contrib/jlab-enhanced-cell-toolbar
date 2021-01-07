@@ -10,6 +10,8 @@ A cell toolbar for JupyterLab.
 
 - JupyterLab >= 3.0
 
+For JupyterLab 2.x, have look [there](https://github.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/tree/2.x).
+
 ## Install
 
 ```bash
