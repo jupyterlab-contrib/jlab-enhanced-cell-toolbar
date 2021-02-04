@@ -1,3 +1,8 @@
+/* Patch default to reduce vertical blank space */
+.jp-Notebook .jp-Cell {
+  padding: 0px var(--jp-cell-padding);
+}
+
 .lm-Widget.jp-enh-cell-button {
   background: none;
   border: none;
@@ -48,7 +53,8 @@
   margin-left: calc(
     var(--jp-cell-collapser-width) + var(--jp-cell-prompt-width)
   );
-  padding-bottom: 2px;
+  padding: 2px 0px;
+  min-height: 22px;
 }
 
 .jp-enh-cell-menu {
@@ -84,7 +90,8 @@
   flex-direction: row;
 }
 
-.jp-enh-cell-tags .tag {
+.jp-enh-cell-tags .tag,
+.jp-enh-cell-tags .tag input.add-tag {
   font-size: 0.8em;
   height: 18px;
   margin: 0px 2px;
