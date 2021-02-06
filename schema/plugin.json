@@ -6,7 +6,9 @@
     "defaultTags": {
       "title": "List of Default Tags",
       "description": "List of tags to always display for quick selection.",
-      "default": ["parameters"],
+      "default": [
+        "parameters"
+      ],
       "type": "array",
       "items": {
         "type": "string",
@@ -15,12 +17,16 @@
     },
     "leftMenu": {
       "title": "List of left menu items",
-      "description": "",
+      "description": "An item is defined by a 'command' name and an 'icon' name + optionally a 'tooltip' and the 'cellType' on which it applies",
       "oneOf": [
-        { "type": "null" },
+        {
+          "type": "null"
+        },
         {
           "type": "array",
-          "items": { "$ref": "#/definitions/menuItem" }
+          "items": {
+            "$ref": "#/definitions/menuItem"
+          }
         }
       ],
       "default": [
@@ -51,14 +57,19 @@
     },
     "rightMenu": {
       "title": "List of left menu items",
-      "description": "",
+      "description": "An item is defined by a 'command' name and an 'icon' name + optionally a 'tooltip' and the 'cellType' on which it applies",
       "oneOf": [
-        { "type": "null" },
+        {
+          "type": "null"
+        },
         {
           "type": "array",
-          "items": { "$ref": "#/definitions/menuItem" }
+          "items": {
+            "$ref": "#/definitions/menuItem"
+          }
         }
-      ]
+      ],
+      "default": null
     }
   },
   "additionalProperties": false,
@@ -67,13 +78,29 @@
     "menuItem": {
       "type": "object",
       "properties": {
-        "command": { "type": "string" },
-        "icon": { "type": "string" },
-        "tooltip": { "type": "string" },
-        "cellType": { "type": "string" }
+        "command": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "tooltip": {
+          "type": "string"
+        },
+        "cellType": {
+          "type": "string",
+          "enum": [
+            "code",
+            "markdown",
+            "raw"
+          ]
+        }
       },
       "additionalProperties": false,
-      "required": ["command", "icon"]
+      "required": [
+        "command",
+        "icon"
+      ]
     }
   }
 }
