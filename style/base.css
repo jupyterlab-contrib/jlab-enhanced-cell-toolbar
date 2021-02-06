@@ -90,9 +90,8 @@
   flex-direction: row;
 }
 
-.jp-enh-cell-tags .tag,
-.jp-enh-cell-tags .tag input.add-tag {
-  font-size: 0.8em;
+.jp-enh-cell-tags .tag {
+  font-size: 0.9em;
   height: 18px;
   margin: 0px 2px;
   padding: 0px 2px;
@@ -100,6 +99,10 @@
   cursor: pointer;
   /* Needed to ensure correct display */
   max-width: unset;
+}
+
+.jp-enh-cell-tags .tag input.add-tag {
+  font-size: 1em;
 }
 
 .jp-mod-active .jp-enh-cell-tags .tag.unapplied-tag {

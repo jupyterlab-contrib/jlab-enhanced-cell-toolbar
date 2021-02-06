@@ -13,7 +13,7 @@ export interface ICellMenuItem {
   /**
    * Icon for the item
    */
-  icon: LabIcon;
+  icon: LabIcon | string;
   /**
    * Icon tooltip
    */

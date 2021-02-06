@@ -11,16 +11,47 @@ import {
   addIcon,
   caretDownEmptyThinIcon,
   caretUpEmptyThinIcon,
+  markdownIcon,
   runIcon
 } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { IDisposable } from '@lumino/disposable';
 import { PanelLayout, Widget } from '@lumino/widgets';
 import { CellToolbarWidget } from './celltoolbarwidget';
+import { codeIcon, deleteIcon, formatIcon } from './icon';
 import { PositionedButton } from './positionedbutton';
 import { ICellMenuItem } from './tokens';
 
-const FOREIGN_COMMANDS: ICellMenuItem[] = [
+const DEFAULT_LEFT_MENU: ICellMenuItem[] = [
+  // Originate from @jupyterlab/notebook-extension
+  {
+    className: 'jp-enh-cell-to-code',
+    command: 'notebook:change-cell-to-code',
+    icon: codeIcon,
+    tooltip: 'Convert to Code Cell'
+  },
+  {
+    className: 'jp-enh-cell-to-md',
+    command: 'notebook:change-cell-to-markdown',
+    icon: markdownIcon,
+    tooltip: 'Convert to Markdown Cell'
+  },
+  // Originate from @ryantam626/jupyterlab_code_formatter
+  {
+    className: 'jp-enh-cell-format',
+    command: 'jupyterlab_code_formatter:format',
+    icon: formatIcon,
+    tooltip: 'Format Cell'
+  },
+  // Originate from @jupyterlab/notebook-extension
+  {
+    command: 'notebook:delete-cell',
+    icon: deleteIcon,
+    tooltip: 'Delete Selected Cells'
+  }
+];
+
+const POSITIONED_BUTTONS: ICellMenuItem[] = [
   // Originate from @jupyterlab/notebook-extension
   {
     className: 'jp-enh-cell-run',
@@ -115,12 +146,14 @@ export class CellToolbarTracker implements IDisposable {
       const toolbar = new CellToolbarWidget(
         this._commands,
         model,
-        this._allTags
+        this._allTags,
+        this._leftMenuItems,
+        this._rightMenuItems
       );
       toolbar.addClass(CELL_BAR_CLASS);
       (cell.layout as PanelLayout).insertWidget(0, toolbar);
 
-      FOREIGN_COMMANDS.forEach(entry => {
+      POSITIONED_BUTTONS.forEach(entry => {
         if (this._commands.hasCommand(entry.command)) {
           const { className, command, ...others } = entry;
           const button = new PositionedButton({
@@ -161,6 +194,32 @@ export class CellToolbarTracker implements IDisposable {
    * Call back on settings changes
    */
   private _onSettingsChanged(): void {
+    // Update menu items
+    const leftItems = (this._settings.composite['leftMenu'] as any) as
+      | ICellMenuItem[]
+      | null;
+    // Test to avoid useless signal emission
+    if (this._leftMenuItems.length > 0) {
+      this._leftMenuItems.clear();
+    }
+    if (leftItems) {
+      if (leftItems.length > 0) {
+        this._leftMenuItems.pushAll(leftItems);
+      }
+    } else {
+      this._leftMenuItems.pushAll(DEFAULT_LEFT_MENU);
+    }
+    const rightItems = ((this._settings.composite['rightMenu'] as any) ||
+      []) as ICellMenuItem[];
+    // Test to avoid useless signal emission
+    if (this._rightMenuItems.length > 0) {
+      this._rightMenuItems.clear();
+    }
+    if (rightItems.length > 0) {
+      this._rightMenuItems.pushAll(rightItems);
+    }
+
+    // Update tags
     const newDefaultTags =
       (this._settings.composite['defaultTags'] as string[]) || [];
     // Update default tag in shared tag list
@@ -179,8 +238,14 @@ export class CellToolbarTracker implements IDisposable {
   private _allTags: ObservableList<string> = new ObservableList<string>();
   private _commands: CommandRegistry;
   private _isDisposed = false;
+  private _leftMenuItems: ObservableList<ICellMenuItem> = new ObservableList<
+    ICellMenuItem
+  >();
   private _previousDefaultTags = new Array<string>();
   private _panel: NotebookPanel;
+  private _rightMenuItems: ObservableList<ICellMenuItem> = new ObservableList<
+    ICellMenuItem
+  >();
   private _settings: ISettingRegistry.ISettings | null;
 }
 

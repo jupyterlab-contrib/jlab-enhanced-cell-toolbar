@@ -1,4 +1,5 @@
 {
+  "$schema": "http://json-schema.org/draft-07/schema",
   "title": "Cell Toolbar",
   "description": "Cell Toolbar Settings.",
   "properties": {
@@ -11,8 +12,68 @@
         "type": "string",
         "pattern": "^[\\w-]+$"
       }
+    },
+    "leftMenu": {
+      "title": "List of left menu items",
+      "description": "",
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "array",
+          "items": { "$ref": "#/definitions/menuItem" }
+        }
+      ],
+      "default": [
+        {
+          "className": "jp-enh-cell-to-code",
+          "command": "notebook:change-cell-to-code",
+          "icon": "@jlab-enhanced/cell-toolbar:code",
+          "tooltip": "Convert to Code Cell"
+        },
+        {
+          "className": "jp-enh-cell-to-md",
+          "command": "notebook:change-cell-to-markdown",
+          "icon": "ui-components:markdown",
+          "tooltip": "Convert to Markdown Cell"
+        },
+        {
+          "className": "jp-enh-cell-format",
+          "command": "jupyterlab_code_formatter:format",
+          "icon": "@jlab-enhanced/cell-toolbar:format",
+          "tooltip": "Format Cell"
+        },
+        {
+          "command": "notebook:delete-cell",
+          "icon": "@jlab-enhanced/cell-toolbar:delete",
+          "tooltip": "Delete Selected Cells"
+        }
+      ]
+    },
+    "rightMenu": {
+      "title": "List of left menu items",
+      "description": "",
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "array",
+          "items": { "$ref": "#/definitions/menuItem" }
+        }
+      ],
     }
   },
   "additionalProperties": false,
-  "type": "object"
+  "type": "object",
+  "definitions": {
+    "menuItem": {
+      "type": "object",
+      "properties": {
+        "command": { "type": "string" },
+        "icon": { "type": "string" },
+        "tooltip": { "type": "string" },
+        "className": { "type": "string" }
+      },
+      "additionalProperties": false,
+      "required": ["command", "icon"]
+    }
+  }
 }
