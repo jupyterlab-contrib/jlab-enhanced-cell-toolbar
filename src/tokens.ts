@@ -19,7 +19,9 @@ export interface ICellMenuItem {
    */
   tooltip?: string;
   /**
-   * Item class name
+   * Type of cell it applies on
+   *
+   * Undefined if it applies on all cell types
    */
-  className?: string;
+  cellType?: 'code' | 'markdown' | 'raw';
 }

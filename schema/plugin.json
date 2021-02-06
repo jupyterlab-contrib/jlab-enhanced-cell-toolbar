@@ -25,19 +25,19 @@
       ],
       "default": [
         {
-          "className": "jp-enh-cell-to-code",
+          "cellType": "markdown",
           "command": "notebook:change-cell-to-code",
           "icon": "@jlab-enhanced/cell-toolbar:code",
           "tooltip": "Convert to Code Cell"
         },
         {
-          "className": "jp-enh-cell-to-md",
+          "cellType": "code",
           "command": "notebook:change-cell-to-markdown",
           "icon": "ui-components:markdown",
           "tooltip": "Convert to Markdown Cell"
         },
         {
-          "className": "jp-enh-cell-format",
+          "cellType": "code",
           "command": "jupyterlab_code_formatter:format",
           "icon": "@jlab-enhanced/cell-toolbar:format",
           "tooltip": "Format Cell"
@@ -58,7 +58,7 @@
           "type": "array",
           "items": { "$ref": "#/definitions/menuItem" }
         }
-      ],
+      ]
     }
   },
   "additionalProperties": false,
@@ -70,7 +70,7 @@
         "command": { "type": "string" },
         "icon": { "type": "string" },
         "tooltip": { "type": "string" },
-        "className": { "type": "string" }
+        "cellType": { "type": "string" }
       },
       "additionalProperties": false,
       "required": ["command", "icon"]

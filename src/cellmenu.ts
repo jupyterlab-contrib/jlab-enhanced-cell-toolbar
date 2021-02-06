@@ -39,7 +39,7 @@ export class CellMenu extends Widget {
     changes?: IObservableList.IChangedArgs<ICellMenuItem>
   ): void {
     each(this.children(), widget => {
-      widget.parent = null;
+      widget.dispose();
     });
 
     const layout = this.layout as PanelLayout;
@@ -49,7 +49,7 @@ export class CellMenu extends Widget {
           new ToolbarButton({
             icon: LabIcon.resolve({ icon: entry.icon }),
             tooltip: entry.tooltip,
-            className: entry.className,
+            className: `jp-enh-cell-${entry.cellType || 'all'}`,
             onClick: (): void => {
               this._commands.execute(entry.command);
             }

@@ -25,20 +25,20 @@ import { ICellMenuItem } from './tokens';
 const DEFAULT_LEFT_MENU: ICellMenuItem[] = [
   // Originate from @jupyterlab/notebook-extension
   {
-    className: 'jp-enh-cell-to-code',
+    cellType: 'markdown',
     command: 'notebook:change-cell-to-code',
     icon: codeIcon,
     tooltip: 'Convert to Code Cell'
   },
   {
-    className: 'jp-enh-cell-to-md',
+    cellType: 'code',
     command: 'notebook:change-cell-to-markdown',
     icon: markdownIcon,
     tooltip: 'Convert to Markdown Cell'
   },
   // Originate from @ryantam626/jupyterlab_code_formatter
   {
-    className: 'jp-enh-cell-format',
+    cellType: 'code',
     command: 'jupyterlab_code_formatter:format',
     icon: formatIcon,
     tooltip: 'Format Cell'
@@ -54,26 +54,23 @@ const DEFAULT_LEFT_MENU: ICellMenuItem[] = [
 const POSITIONED_BUTTONS: ICellMenuItem[] = [
   // Originate from @jupyterlab/notebook-extension
   {
-    className: 'jp-enh-cell-run',
+    cellType: 'code',
     command: 'notebook:run-cell',
     icon: runIcon,
     tooltip: 'Run Selected Cells'
   },
   // { className: 'jp-enh-cell-interrupt', command: 'notebook:interrupt-kernel', icon: stopIcon },
   {
-    className: 'jp-enh-cell-up',
     command: 'notebook:move-cell-up',
     icon: caretUpEmptyThinIcon,
     tooltip: 'Move Selected Cells Up'
   },
   {
-    className: 'jp-enh-cell-down',
     command: 'notebook:move-cell-down',
     icon: caretDownEmptyThinIcon,
     tooltip: 'Move Selected Cells Down'
   },
   {
-    className: 'jp-enh-cell-insert',
     command: 'notebook:insert-cell-below',
     icon: addIcon,
     tooltip: 'Insert Cell'
@@ -155,17 +152,17 @@ export class CellToolbarTracker implements IDisposable {
 
       POSITIONED_BUTTONS.forEach(entry => {
         if (this._commands.hasCommand(entry.command)) {
-          const { className, command, ...others } = entry;
+          const { cellType, command, ...others } = entry;
+          const shortName = command.split(':')[1];
           const button = new PositionedButton({
             ...others,
             callback: (): void => {
               this._commands.execute(command);
-            }
+            },
+            className: shortName && `jp-enh-cell-${shortName}`
           });
           button.addClass(CELL_BAR_CLASS);
-          if (className) {
-            button.addClass(className);
-          }
+          button.addClass(`jp-enh-cell-${cellType || 'all'}`);
           (cell.layout as PanelLayout).addWidget(button);
         }
       });

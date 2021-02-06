@@ -11,6 +11,10 @@ export interface IPositionedButton extends Omit<ICellMenuItem, 'command'> {
    * Button callback
    */
   callback: () => void;
+  /**
+   * Custom class name
+   */
+  className?: string;
 }
 
 /**
