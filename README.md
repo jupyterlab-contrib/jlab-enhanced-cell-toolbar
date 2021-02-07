@@ -77,7 +77,7 @@ conda remove -c conda-forge jlab-enhanced-cell-toolbar
 
 > The default JupyterLab icon names can be found in the [ui-components](https://github.com/jupyterlab/jupyterlab/blob/master/packages/ui-components/src/icon/iconimports.ts) package.
 
-- _leftSpace_: The left empty white space in pixel. For example, using the following settings:
+- _leftSpace_: The left empty white space width in pixel. For example, using the following settings:
 
 ```json
 {
