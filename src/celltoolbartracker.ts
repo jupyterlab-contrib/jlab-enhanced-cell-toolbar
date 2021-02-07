@@ -17,7 +17,7 @@ import {
 import { CommandRegistry } from '@lumino/commands';
 import { IDisposable } from '@lumino/disposable';
 import { PanelLayout, Widget } from '@lumino/widgets';
-import { CellToolbarWidget } from './celltoolbarwidget';
+import { CellToolbarWidget, LEFT_SPACER_CLASSNAME } from './celltoolbarwidget';
 import { codeIcon, deleteIcon, formatIcon } from './icon';
 import { PositionedButton } from './positionedbutton';
 import { ICellMenuItem } from './tokens';
@@ -145,7 +145,8 @@ export class CellToolbarTracker implements IDisposable {
         model,
         this._allTags,
         this._leftMenuItems,
-        this._rightMenuItems
+        this._rightMenuItems,
+        (this._settings?.composite['leftSpace'] as number) || 0
       );
       toolbar.addClass(CELL_BAR_CLASS);
       (cell.layout as PanelLayout).insertWidget(0, toolbar);
@@ -230,6 +231,14 @@ export class CellToolbarTracker implements IDisposable {
       .filter(tag => !newDefaultTags.includes(tag))
       .forEach(tag => this._allTags.removeValue(tag));
     this._previousDefaultTags = newDefaultTags;
+
+    // Update left space
+    const leftSpace = (this._settings?.composite['leftSpace'] as number) || 0;
+    this._panel.node
+      .querySelectorAll(`div.${LEFT_SPACER_CLASSNAME}`)
+      .forEach(node => {
+        (node as HTMLElement).style.width = `${leftSpace}px`;
+      });
   }
 
   private _allTags: ObservableList<string> = new ObservableList<string>();

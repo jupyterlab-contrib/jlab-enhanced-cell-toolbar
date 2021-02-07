@@ -55,6 +55,13 @@
         }
       ]
     },
+    "leftSpace": {
+      "title": "Cell toolbar empty left space size",
+      "description": "Size of the empty space left of the cell toolbar in px.",
+      "type": "number",
+      "minimum": 0,
+      "default": 0
+    },
     "rightMenu": {
       "title": "List of left menu items",
       "description": "An item is defined by a 'command' name and an 'icon' name + optionally a 'tooltip' and the 'cellType' on which it applies",
