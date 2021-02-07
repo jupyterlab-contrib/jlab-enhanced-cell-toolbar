@@ -27,14 +27,12 @@ const DEFAULT_LEFT_MENU: ICellMenuItem[] = [
   {
     cellType: 'markdown',
     command: 'notebook:change-cell-to-code',
-    icon: codeIcon,
-    tooltip: 'Convert to Code Cell'
+    icon: codeIcon
   },
   {
     cellType: 'code',
     command: 'notebook:change-cell-to-markdown',
-    icon: markdownIcon,
-    tooltip: 'Convert to Markdown Cell'
+    icon: markdownIcon
   },
   // Originate from @ryantam626/jupyterlab_code_formatter
   {
@@ -46,34 +44,29 @@ const DEFAULT_LEFT_MENU: ICellMenuItem[] = [
   // Originate from @jupyterlab/notebook-extension
   {
     command: 'notebook:delete-cell',
-    icon: deleteIcon,
-    tooltip: 'Delete Selected Cells'
+    icon: deleteIcon
   }
 ];
 
 const POSITIONED_BUTTONS: ICellMenuItem[] = [
   // Originate from @jupyterlab/notebook-extension
   {
-    cellType: 'code',
-    command: 'notebook:run-cell',
-    icon: runIcon,
-    tooltip: 'Run Selected Cells'
+    // cellType: 'code',
+    command: 'notebook:run-cell-and-select-next',
+    icon: runIcon
   },
   // { className: 'jp-enh-cell-interrupt', command: 'notebook:interrupt-kernel', icon: stopIcon },
   {
     command: 'notebook:move-cell-up',
-    icon: caretUpEmptyThinIcon,
-    tooltip: 'Move Selected Cells Up'
+    icon: caretUpEmptyThinIcon
   },
   {
     command: 'notebook:move-cell-down',
-    icon: caretDownEmptyThinIcon,
-    tooltip: 'Move Selected Cells Down'
+    icon: caretDownEmptyThinIcon
   },
   {
     command: 'notebook:insert-cell-below',
-    icon: addIcon,
-    tooltip: 'Insert Cell'
+    icon: addIcon
   }
 ];
 
@@ -153,14 +146,15 @@ export class CellToolbarTracker implements IDisposable {
 
       POSITIONED_BUTTONS.forEach(entry => {
         if (this._commands.hasCommand(entry.command)) {
-          const { cellType, command, ...others } = entry;
+          const { cellType, command, tooltip, ...others } = entry;
           const shortName = command.split(':')[1];
           const button = new PositionedButton({
             ...others,
             callback: (): void => {
               this._commands.execute(command);
             },
-            className: shortName && `jp-enh-cell-${shortName}`
+            className: shortName && `jp-enh-cell-${shortName}`,
+            tooltip: tooltip || this._commands.label(entry.command)
           });
           button.addClass(CELL_BAR_CLASS);
           button.addClass(`jp-enh-cell-${cellType || 'all'}`);

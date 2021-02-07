@@ -33,14 +33,12 @@
         {
           "cellType": "markdown",
           "command": "notebook:change-cell-to-code",
-          "icon": "@jlab-enhanced/cell-toolbar:code",
-          "tooltip": "Convert to Code Cell"
+          "icon": "@jlab-enhanced/cell-toolbar:code"
         },
         {
           "cellType": "code",
           "command": "notebook:change-cell-to-markdown",
-          "icon": "ui-components:markdown",
-          "tooltip": "Convert to Markdown Cell"
+          "icon": "ui-components:markdown"
         },
         {
           "cellType": "code",
@@ -50,8 +48,7 @@
         },
         {
           "command": "notebook:delete-cell",
-          "icon": "@jlab-enhanced/cell-toolbar:delete",
-          "tooltip": "Delete Selected Cells"
+          "icon": "@jlab-enhanced/cell-toolbar:delete"
         }
       ]
     },

@@ -27,7 +27,7 @@
   display: block;
 }
 
-.jp-enh-cell-run-cell {
+.jp-enh-cell-run-cell-and-select-next {
   left: 46px;
   top: 46px;
 }
@@ -73,9 +73,7 @@
   cursor: pointer;
 }
 
-.jp-enh-cell-menu .jp-ToolbarButton button,
-.jp-MarkdownCell.jp-mod-active .jp-enh-cell-run-cell,
-.jp-RawCell.jp-mod-active .jp-enh-cell-run-cell {
+.jp-enh-cell-menu .jp-ToolbarButton button {
   display: none;
 }
 
