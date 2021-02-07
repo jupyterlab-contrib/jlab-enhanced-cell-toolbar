@@ -28,7 +28,7 @@
 }
 
 .jp-enh-cell-run-cell {
-  left: 44px;
+  left: 46px;
   top: 46px;
 }
 
@@ -43,8 +43,10 @@
 }
 
 .jp-enh-cell-insert-cell-below {
-  bottom: -11px;
-  left: -10px;
+  bottom: -19px;
+  left: calc(
+    var(--jp-cell-collapser-width) + var(--jp-cell-prompt-width) - 10px
+  );
 }
 
 .jp-enh-cell-toolbar {
