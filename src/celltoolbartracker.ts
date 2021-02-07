@@ -51,11 +51,9 @@ const DEFAULT_LEFT_MENU: ICellMenuItem[] = [
 const POSITIONED_BUTTONS: ICellMenuItem[] = [
   // Originate from @jupyterlab/notebook-extension
   {
-    // cellType: 'code',
     command: 'notebook:run-cell-and-select-next',
     icon: runIcon
   },
-  // { className: 'jp-enh-cell-interrupt', command: 'notebook:interrupt-kernel', icon: stopIcon },
   {
     command: 'notebook:move-cell-up',
     icon: caretUpEmptyThinIcon
