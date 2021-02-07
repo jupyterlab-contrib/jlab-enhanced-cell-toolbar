@@ -103,6 +103,9 @@ export class TagTool extends Widget {
   refreshTags(): void {
     const layout = this.layout as PanelLayout;
     const tags: string[] = [...new Set(toArray(this._tagList))];
+    const allTags = [...tags].sort((a: string, b: string) => (a > b ? 1 : -1));
+
+    // Dispose removed tags
     const toDispose = new Array<Widget>();
     layout.widgets.forEach(widget => {
       if (widget.id !== 'add-tag') {
@@ -116,6 +119,7 @@ export class TagTool extends Widget {
     });
     toDispose.forEach(widget => widget.dispose());
 
+    // Insert new tags
     tags.forEach(tag => {
       layout.insertWidget(
         (this.layout as PanelLayout).widgets.length - 1,
@@ -126,6 +130,18 @@ export class TagTool extends Widget {
     // Update all tags widgets
     layout.widgets.forEach(widget => {
       widget.update();
+    });
+
+    // Sort the widgets in tag alphabetical order
+    //  - undefined matches the AddTag widget
+    const orderedTags = allTags.concat([undefined]);
+    [...layout.widgets].forEach((widget: Widget, index: number) => {
+      const tagIndex = orderedTags.findIndex(
+        tag => (widget as TagWidget).name === tag
+      );
+      if (tagIndex !== index) {
+        layout.insertWidget(tagIndex, widget);
+      }
     });
   }
 
