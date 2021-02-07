@@ -137,6 +137,7 @@ export class CellToolbarTracker implements IDisposable {
         this._allTags,
         this._leftMenuItems,
         this._rightMenuItems,
+        // eslint-disable-next-line prettier/prettier
         (this._settings?.composite['leftSpace'] as number) || 0
       );
       toolbar.addClass(CELL_BAR_CLASS);
