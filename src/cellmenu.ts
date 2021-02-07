@@ -48,11 +48,11 @@ export class CellMenu extends Widget {
         layout.addWidget(
           new ToolbarButton({
             icon: LabIcon.resolve({ icon: entry.icon }),
-            tooltip: entry.tooltip,
             className: `jp-enh-cell-${entry.cellType || 'all'}`,
             onClick: (): void => {
               this._commands.execute(entry.command);
-            }
+            },
+            tooltip: entry.tooltip || this._commands.label(entry.command)
           })
         );
       }

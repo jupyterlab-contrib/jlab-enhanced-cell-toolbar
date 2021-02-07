@@ -6,6 +6,8 @@ import { CellMenu } from './cellmenu';
 import { TagTool } from './tagbar';
 import { ICellMenuItem } from './tokens';
 
+export const LEFT_SPACER_CLASSNAME = 'jp-enh-cell-left-space';
+
 /**
  * Cell Toolbar Widget
  */
@@ -15,12 +17,17 @@ export class CellToolbarWidget extends Widget {
     model: ICellModel,
     tagsList: ObservableList<string>,
     leftMenuItems: ObservableList<ICellMenuItem>,
-    rightMenuItems: ObservableList<ICellMenuItem>
+    rightMenuItems: ObservableList<ICellMenuItem>,
+    leftSpace = 0
   ) {
     super();
     this.layout = new PanelLayout();
     this.addClass('jp-enh-cell-toolbar');
 
+    const leftSpacer = new Widget();
+    leftSpacer.addClass(LEFT_SPACER_CLASSNAME);
+    leftSpacer.node.style.width = `${leftSpace}px`;
+    (this.layout as PanelLayout).addWidget(leftSpacer);
     (this.layout as PanelLayout).addWidget(
       new CellMenu(commands, leftMenuItems)
     );

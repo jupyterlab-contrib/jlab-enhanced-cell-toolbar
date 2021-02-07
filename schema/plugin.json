@@ -33,14 +33,12 @@
         {
           "cellType": "markdown",
           "command": "notebook:change-cell-to-code",
-          "icon": "@jlab-enhanced/cell-toolbar:code",
-          "tooltip": "Convert to Code Cell"
+          "icon": "@jlab-enhanced/cell-toolbar:code"
         },
         {
           "cellType": "code",
           "command": "notebook:change-cell-to-markdown",
-          "icon": "ui-components:markdown",
-          "tooltip": "Convert to Markdown Cell"
+          "icon": "ui-components:markdown"
         },
         {
           "cellType": "code",
@@ -50,10 +48,16 @@
         },
         {
           "command": "notebook:delete-cell",
-          "icon": "@jlab-enhanced/cell-toolbar:delete",
-          "tooltip": "Delete Selected Cells"
+          "icon": "@jlab-enhanced/cell-toolbar:delete"
         }
       ]
+    },
+    "leftSpace": {
+      "title": "Cell toolbar empty left space size",
+      "description": "Size of the empty space left of the cell toolbar in px.",
+      "type": "number",
+      "minimum": 0,
+      "default": 0
     },
     "rightMenu": {
       "title": "List of left menu items",

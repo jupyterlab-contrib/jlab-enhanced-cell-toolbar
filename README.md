@@ -4,7 +4,9 @@
 
 A cell toolbar for JupyterLab.
 
-![Demonstration](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/2.x/demo_cell_toolbar.gif)
+![Demonstration](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/default_look.png)
+
+There are some [Settings](#Settings) to tune the available buttons and the look of this extension.
 
 ## Requirements
 
@@ -21,6 +23,51 @@ jupyter labextension install @jlab-enhanced/cell-toolbar
 ```bash
 jupyter labextension uninstall @jlab-enhanced/cell-toolbar
 ```
+
+## Settings
+
+- _defaultTags_: The list of default available tags. For example, using the following settings:
+
+```json
+{
+    "defaultTags": ["hide", "slide"]
+}
+```
+
+![default tags](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/default_tags.png)
+
+- _leftMenu_ and _rightMenu_: The action buttons to be displayed on the left and right of the cell toolbar. For example, using the following settings:
+
+```json
+{
+    "leftMenu": [
+        {
+          "command": "notebook:run-cell",
+          "icon": "ui-components:run"
+        }
+    ],
+    "rightMenu": [
+        {
+          "command": "notebook:delete-cell",
+          "icon": "@jlab-enhanced/cell-toolbar:delete"
+        }
+    ]
+}
+```
+
+![custom actions](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/menus.png)
+
+> The default JupyterLab icon names can be found in the [ui-components](https://github.com/jupyterlab/jupyterlab/blob/master/packages/ui-components/src/icon/iconimports.ts) package.
+
+- _leftSpace_: The left empty white space in pixel. For example, using the following settings:
+
+```json
+{
+    "leftSpace": 48
+}
+```
+
+![left_space](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/left_space.png)
 
 ## Alternatives
 
