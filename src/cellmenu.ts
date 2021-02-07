@@ -1,65 +1,64 @@
 import { ToolbarButton } from '@jupyterlab/apputils';
-import { markdownIcon } from '@jupyterlab/ui-components';
+import { IObservableList } from '@jupyterlab/observables';
+import { LabIcon } from '@jupyterlab/ui-components';
+import { each } from '@lumino/algorithm';
 import { CommandRegistry } from '@lumino/commands';
 import { PanelLayout, Widget } from '@lumino/widgets';
-import { codeIcon, deleteIcon, formatIcon } from './icon';
 import { ICellMenuItem } from './tokens';
 
 const CELL_MENU_CLASS = 'jp-enh-cell-menu';
-
-const FOREIGN_COMMANDS: ICellMenuItem[] = [
-  // Originate from @jupyterlab/notebook-extension
-  {
-    className: 'jp-enh-cell-to-code',
-    command: 'notebook:change-cell-to-code',
-    icon: codeIcon,
-    tooltip: 'Convert to Code Cell'
-  },
-  {
-    className: 'jp-enh-cell-to-md',
-    command: 'notebook:change-cell-to-markdown',
-    icon: markdownIcon,
-    tooltip: 'Convert to Markdown Cell'
-  },
-  // Originate from @ryantam626/jupyterlab_code_formatter
-  {
-    className: 'jp-enh-cell-format',
-    command: 'jupyterlab_code_formatter:format',
-    icon: formatIcon,
-    tooltip: 'Format Cell'
-  },
-  // Originate from @jupyterlab/notebook-extension
-  {
-    command: 'notebook:delete-cell',
-    icon: deleteIcon,
-    tooltip: 'Delete Selected Cells'
-  }
-];
 
 /**
  * Toolbar icon menu container
  */
 export class CellMenu extends Widget {
-  constructor(commands: CommandRegistry) {
+  constructor(
+    commands: CommandRegistry,
+    items: IObservableList<ICellMenuItem>
+  ) {
     super();
+    this._commands = commands;
+    this._items = items;
     this.layout = new PanelLayout();
     this.addClass(CELL_MENU_CLASS);
-    this._createMenu(commands);
+    this._itemsChanged(items);
+    this._items.changed.connect(this._itemsChanged, this);
   }
 
-  private _createMenu(commands: CommandRegistry): void {
+  dispose(): void {
+    if (this.isDisposed) {
+      return;
+    }
+    this._items.changed.disconnect(this._itemsChanged, this);
+
+    super.dispose();
+  }
+
+  protected _itemsChanged(
+    items: IObservableList<ICellMenuItem>,
+    changes?: IObservableList.IChangedArgs<ICellMenuItem>
+  ): void {
+    each(this.children(), widget => {
+      widget.dispose();
+    });
+
     const layout = this.layout as PanelLayout;
-    FOREIGN_COMMANDS.forEach(entry => {
-      if (commands.hasCommand(entry.command)) {
+    each(items.iter(), entry => {
+      if (this._commands.hasCommand(entry.command)) {
         layout.addWidget(
           new ToolbarButton({
-            ...entry,
+            icon: LabIcon.resolve({ icon: entry.icon }),
+            tooltip: entry.tooltip,
+            className: `jp-enh-cell-${entry.cellType || 'all'}`,
             onClick: (): void => {
-              commands.execute(entry.command);
+              this._commands.execute(entry.command);
             }
           })
         );
       }
     });
   }
+
+  private _commands: CommandRegistry;
+  private _items: IObservableList<ICellMenuItem>;
 }

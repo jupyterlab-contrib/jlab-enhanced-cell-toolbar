@@ -6,3 +6,4 @@ node_modules/
 *.tsbuildinfo
 *.log
 .vscode/
+jlab_enhanced_cell_toolbar/labextension/
