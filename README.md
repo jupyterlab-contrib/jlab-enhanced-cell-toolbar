@@ -1,7 +1,7 @@
 # jlab-enhanced-cell-toolbar
 
 [![Github Actions Status](https://github.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/workflows/Build/badge.svg)](https://github.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/actions?query=workflow%3ABuild)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main?urlpath=lab)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main?urlpath=lab/tree/Example.ipynb)
 [![npm](https://img.shields.io/npm/v/@jlab-enhanced/cell-toolbar)](https://www.npmjs.com/package/@jlab-enhanced/cell-toolbar)
 [![PyPI](https://img.shields.io/pypi/v/jlab-enhanced-cell-toolbar)](https://pypi.org/project/jlab-enhanced-cell-toolbar)
 [![conda-forge](https://img.shields.io/conda/vn/conda-forge/jlab-enhanced-cell-toolbar)](https://anaconda.org/conda-forge/jlab-enhanced-cell-toolbar)
