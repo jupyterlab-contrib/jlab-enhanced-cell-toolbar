@@ -13,13 +13,15 @@ export interface ICellMenuItem {
   /**
    * Icon for the item
    */
-  icon: LabIcon;
+  icon: LabIcon | string;
   /**
    * Icon tooltip
    */
   tooltip?: string;
   /**
-   * Item class name
+   * Type of cell it applies on
+   *
+   * Undefined if it applies on all cell types
    */
-  className?: string;
+  cellType?: 'code' | 'markdown' | 'raw';
 }

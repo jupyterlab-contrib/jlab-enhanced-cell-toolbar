@@ -1,3 +1,4 @@
+import { LabIcon } from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
 import { Widget } from '@lumino/widgets';
 import { ICellMenuItem } from './tokens';
@@ -10,6 +11,10 @@ export interface IPositionedButton extends Omit<ICellMenuItem, 'command'> {
    * Button callback
    */
   callback: () => void;
+  /**
+   * Custom class name
+   */
+  className?: string;
 }
 
 /**
@@ -84,7 +89,7 @@ namespace Private {
       button.classList.add(item.className);
     }
     button.appendChild(
-      item.icon.element({
+      LabIcon.resolve({ icon: item.icon }).element({
         elementPosition: 'center',
         elementSize: 'normal',
         tag: 'span'

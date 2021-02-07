@@ -1,3 +1,8 @@
+/* Patch default to reduce vertical blank space */
+.jp-Notebook .jp-Cell {
+  padding: 0px var(--jp-cell-padding);
+}
+
 .lm-Widget.jp-enh-cell-button {
   background: none;
   border: none;
@@ -22,23 +27,23 @@
   display: block;
 }
 
-.jp-enh-cell-run {
+.jp-enh-cell-run-cell {
   left: 44px;
   top: 46px;
 }
 
-.jp-enh-cell-up {
+.jp-enh-cell-move-cell-up {
   top: 20px;
   left: -10px;
 }
 
-.jp-enh-cell-down {
+.jp-enh-cell-move-cell-down {
   top: 36px;
   left: -10px;
 }
 
-.jp-enh-cell-insert {
-  bottom: -10px;
+.jp-enh-cell-insert-cell-below {
+  bottom: -11px;
   left: -10px;
 }
 
@@ -48,7 +53,8 @@
   margin-left: calc(
     var(--jp-cell-collapser-width) + var(--jp-cell-prompt-width)
   );
-  padding-bottom: 2px;
+  padding: 2px 0px;
+  min-height: 22px;
 }
 
 .jp-enh-cell-menu {
@@ -65,27 +71,27 @@
   cursor: pointer;
 }
 
-.jp-ToolbarButton .jp-enh-cell-to-md,
-.jp-ToolbarButton .jp-enh-cell-to-code,
-.jp-ToolbarButton .jp-enh-cell-format,
-.jp-MarkdownCell.jp-mod-active .jp-enh-cell-run,
-.jp-RawCell.jp-mod-active .jp-enh-cell-run {
+.jp-enh-cell-menu .jp-ToolbarButton button,
+.jp-MarkdownCell.jp-mod-active .jp-enh-cell-run-cell,
+.jp-RawCell.jp-mod-active .jp-enh-cell-run-cell {
   display: none;
 }
 
-.jp-CodeCell .jp-ToolbarButton .jp-enh-cell-to-md,
-.jp-MarkdownCell .jp-ToolbarButton .jp-enh-cell-to-code,
-.jp-CodeCell .jp-ToolbarButton .jp-enh-cell-format {
+.jp-enh-cell-menu .jp-ToolbarButton .jp-enh-cell-all,
+.jp-CodeCell .jp-ToolbarButton .jp-enh-cell-code,
+.jp-MarkdownCell .jp-ToolbarButton .jp-enh-cell-markdown,
+.jp-RawCell .jp-ToolbarButton .jp-enh-cell-raw {
   display: block;
 }
 
 .jp-enh-cell-tags {
   display: flex;
   flex-direction: row;
+  flex: 1 1 auto;
 }
 
 .jp-enh-cell-tags .tag {
-  font-size: 0.8em;
+  font-size: 0.85em;
   height: 18px;
   margin: 0px 2px;
   padding: 0px 2px;
@@ -93,6 +99,10 @@
   cursor: pointer;
   /* Needed to ensure correct display */
   max-width: unset;
+}
+
+.jp-enh-cell-tags .tag input.add-tag {
+  font-size: 1em;
 }
 
 .jp-mod-active .jp-enh-cell-tags .tag.unapplied-tag {
