@@ -16,7 +16,8 @@ const extension: JupyterFrontEndPlugin<void> = {
     app: JupyterFrontEnd,
     settingRegistry: ISettingRegistry | null
   ) => {
-    const settings = await settingRegistry.load(`${EXTENSION_ID}:plugin`);
+    const settings =
+      (await settingRegistry?.load(`${EXTENSION_ID}:plugin`)) ?? null;
     app.docRegistry.addWidgetExtension(
       'Notebook',
       new CellBarExtension(app.commands, settings)

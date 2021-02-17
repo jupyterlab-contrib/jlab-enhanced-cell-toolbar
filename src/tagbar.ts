@@ -134,12 +134,11 @@ export class TagTool extends Widget {
 
     // Sort the widgets in tag alphabetical order
     //  - undefined matches the AddTag widget
-    const orderedTags = allTags.concat([undefined]);
     [...layout.widgets].forEach((widget: Widget, index: number) => {
-      const tagIndex = orderedTags.findIndex(
+      const tagIndex = allTags.findIndex(
         tag => (widget as TagWidget).name === tag
       );
-      if (tagIndex !== index) {
+      if (tagIndex !== index && tagIndex !== allTags.length - 1) {
         layout.insertWidget(tagIndex, widget);
       }
     });
@@ -186,7 +185,7 @@ export class TagTool extends Widget {
    */
   protected onCellMetadataChanged(
     metadata: IObservableJSON,
-    changes: IObservableMap.IChangedArgs<ReadonlyPartialJSONValue>
+    changes: IObservableMap.IChangedArgs<ReadonlyPartialJSONValue | undefined>
   ): void {
     if (changes.key === 'tags') {
       const oldTags = [...new Set((changes.oldValue as string[]) || [])];
