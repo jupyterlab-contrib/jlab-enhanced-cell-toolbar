@@ -133,12 +133,16 @@ export class TagTool extends Widget {
     });
 
     // Sort the widgets in tag alphabetical order
+    // TODO: find an alternative way to order the tags?
+    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+    // @ts-ignore
     //  - undefined matches the AddTag widget
+    const orderedTags = allTags.concat([undefined]);
     [...layout.widgets].forEach((widget: Widget, index: number) => {
-      const tagIndex = allTags.findIndex(
+      const tagIndex = orderedTags.findIndex(
         tag => (widget as TagWidget).name === tag
       );
-      if (tagIndex !== index && tagIndex !== allTags.length - 1) {
+      if (tagIndex !== index) {
         layout.insertWidget(tagIndex, widget);
       }
     });
