@@ -109,8 +109,10 @@ export class CellToolbarTracker implements IDisposable {
       this._settings.changed.disconnect(this._onSettingsChanged, this);
     }
 
-    const cells = this._panel.context.model.cells;
-    cells.changed.disconnect(this.updateConnectedCells, this);
+    const cells = this._panel?.context.model.cells;
+    if (cells) {
+      cells.changed.disconnect(this.updateConnectedCells, this);
+    }
     this._panel = null;
   }
 
@@ -163,8 +165,8 @@ export class CellToolbarTracker implements IDisposable {
     }
   }
 
-  private _getCell(model: ICellModel): Cell {
-    return this._panel.content.widgets.find(widget => widget.model === model);
+  private _getCell(model: ICellModel): Cell | undefined {
+    return this._panel?.content.widgets.find(widget => widget.model === model);
   }
 
   private _findToolbarWidgets(cell: Cell): Widget[] {
@@ -186,7 +188,7 @@ export class CellToolbarTracker implements IDisposable {
    */
   private _onSettingsChanged(): void {
     // Update menu items
-    const leftItems = (this._settings.composite['leftMenu'] as any) as
+    const leftItems = (this._settings?.composite['leftMenu'] as any) as
       | ICellMenuItem[]
       | null;
     // Test to avoid useless signal emission
@@ -200,7 +202,7 @@ export class CellToolbarTracker implements IDisposable {
     } else {
       this._leftMenuItems.pushAll(DEFAULT_LEFT_MENU);
     }
-    const rightItems = ((this._settings.composite['rightMenu'] as any) ||
+    const rightItems = ((this._settings?.composite['rightMenu'] as any) ||
       []) as ICellMenuItem[];
     // Test to avoid useless signal emission
     if (this._rightMenuItems.length > 0) {
@@ -212,7 +214,7 @@ export class CellToolbarTracker implements IDisposable {
 
     // Update tags
     const newDefaultTags =
-      (this._settings.composite['defaultTags'] as string[]) || [];
+      (this._settings?.composite['defaultTags'] as string[]) || [];
     // Update default tag in shared tag list
     const toAdd = newDefaultTags.filter(
       tag => !this._previousDefaultTags.includes(tag)
@@ -227,11 +229,13 @@ export class CellToolbarTracker implements IDisposable {
 
     // Update left space
     const leftSpace = (this._settings?.composite['leftSpace'] as number) || 0;
-    this._panel.node
-      .querySelectorAll(`div.${LEFT_SPACER_CLASSNAME}`)
-      .forEach(node => {
-        (node as HTMLElement).style.width = `${leftSpace}px`;
-      });
+    if (this._panel) {
+      this._panel.node
+        .querySelectorAll(`div.${LEFT_SPACER_CLASSNAME}`)
+        .forEach(node => {
+          (node as HTMLElement).style.width = `${leftSpace}px`;
+        });
+    }
   }
 
   private _allTags: ObservableList<string> = new ObservableList<string>();
@@ -241,7 +245,7 @@ export class CellToolbarTracker implements IDisposable {
     ICellMenuItem
   >();
   private _previousDefaultTags = new Array<string>();
-  private _panel: NotebookPanel;
+  private _panel: NotebookPanel | null;
   private _rightMenuItems: ObservableList<ICellMenuItem> = new ObservableList<
     ICellMenuItem
   >();
