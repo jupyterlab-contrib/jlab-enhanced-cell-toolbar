@@ -14,10 +14,11 @@ import {
   markdownIcon,
   runIcon
 } from '@jupyterlab/ui-components';
+import { each } from '@lumino/algorithm';
 import { CommandRegistry } from '@lumino/commands';
 import { IDisposable } from '@lumino/disposable';
 import { PanelLayout, Widget } from '@lumino/widgets';
-import { CellToolbarWidget, LEFT_SPACER_CLASSNAME } from './celltoolbarwidget';
+import { CellToolbarWidget } from './celltoolbarwidget';
 import { codeIcon, deleteIcon, formatIcon } from './icon';
 import { PositionedButton } from './positionedbutton';
 import { ICellMenuItem } from './tokens';
@@ -48,7 +49,7 @@ const DEFAULT_LEFT_MENU: ICellMenuItem[] = [
   }
 ];
 
-const POSITIONED_BUTTONS: ICellMenuItem[] = [
+const DEFAULT_HELPER_BUTTONS: ICellMenuItem[] = [
   // Originate from @jupyterlab/notebook-extension
   {
     command: 'notebook:run-cell-and-select-next',
@@ -112,6 +113,7 @@ export class CellToolbarTracker implements IDisposable {
     const cells = this._panel?.context.model.cells;
     if (cells) {
       cells.changed.disconnect(this.updateConnectedCells, this);
+      each(cells.iter(), model => this._removeToolbar(model));
     }
     this._panel = null;
   }
@@ -132,19 +134,34 @@ export class CellToolbarTracker implements IDisposable {
 
   private _addToolbar(model: ICellModel): void {
     const cell = this._getCell(model);
+
     if (cell) {
+      let { helperButtons, leftMenu, rightMenu, leftSpace } = this._settings
+        ?.composite as any;
+
+      helperButtons =
+        helperButtons === null
+          ? []
+          : helperButtons ??
+            DEFAULT_HELPER_BUTTONS.map(entry => entry.command.split(':')[1]);
+      leftMenu = leftMenu === null ? [] : leftMenu ?? DEFAULT_LEFT_MENU;
+      rightMenu = rightMenu ?? [];
+      leftSpace = leftSpace ?? 0;
+
       const toolbar = new CellToolbarWidget(
         this._commands,
         model,
         this._allTags,
-        this._leftMenuItems,
-        this._rightMenuItems,
-        (this._settings?.composite['leftSpace'] as number) || 0
+        leftMenu,
+        rightMenu,
+        leftSpace
       );
       toolbar.addClass(CELL_BAR_CLASS);
       (cell.layout as PanelLayout).insertWidget(0, toolbar);
 
-      POSITIONED_BUTTONS.forEach(entry => {
+      DEFAULT_HELPER_BUTTONS.filter(entry =>
+        (helperButtons as string[]).includes(entry.command.split(':')[1])
+      ).forEach(entry => {
         if (this._commands.hasCommand(entry.command)) {
           const { cellType, command, tooltip, ...others } = entry;
           const shortName = command.split(':')[1];
@@ -186,29 +203,12 @@ export class CellToolbarTracker implements IDisposable {
    * Call back on settings changes
    */
   private _onSettingsChanged(): void {
-    // Update menu items
-    const leftItems = (this._settings?.composite['leftMenu'] as any) as
-      | ICellMenuItem[]
-      | null;
-    // Test to avoid useless signal emission
-    if (this._leftMenuItems.length > 0) {
-      this._leftMenuItems.clear();
-    }
-    if (leftItems) {
-      if (leftItems.length > 0) {
-        this._leftMenuItems.pushAll(leftItems);
-      }
-    } else {
-      this._leftMenuItems.pushAll(DEFAULT_LEFT_MENU);
-    }
-    const rightItems = ((this._settings?.composite['rightMenu'] as any) ||
-      []) as ICellMenuItem[];
-    // Test to avoid useless signal emission
-    if (this._rightMenuItems.length > 0) {
-      this._rightMenuItems.clear();
-    }
-    if (rightItems.length > 0) {
-      this._rightMenuItems.pushAll(rightItems);
+    // Reset toolbar when settings changes
+    if (this._panel?.context.model.cells) {
+      each(this._panel?.context.model.cells.iter(), model => {
+        this._removeToolbar(model);
+        this._addToolbar(model);
+      });
     }
 
     // Update tags
@@ -225,29 +225,13 @@ export class CellToolbarTracker implements IDisposable {
       .filter(tag => !newDefaultTags.includes(tag))
       .forEach(tag => this._allTags.removeValue(tag));
     this._previousDefaultTags = newDefaultTags;
-
-    // Update left space
-    const leftSpace = (this._settings?.composite['leftSpace'] as number) || 0;
-    if (this._panel) {
-      this._panel.node
-        .querySelectorAll(`div.${LEFT_SPACER_CLASSNAME}`)
-        .forEach(node => {
-          (node as HTMLElement).style.width = `${leftSpace}px`;
-        });
-    }
   }
 
   private _allTags: ObservableList<string> = new ObservableList<string>();
   private _commands: CommandRegistry;
   private _isDisposed = false;
-  private _leftMenuItems: ObservableList<ICellMenuItem> = new ObservableList<
-    ICellMenuItem
-  >();
   private _previousDefaultTags = new Array<string>();
   private _panel: NotebookPanel | null;
-  private _rightMenuItems: ObservableList<ICellMenuItem> = new ObservableList<
-    ICellMenuItem
-  >();
   private _settings: ISettingRegistry.ISettings | null;
 }
 
