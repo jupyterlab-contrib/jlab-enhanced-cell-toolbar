@@ -15,6 +15,34 @@
         "pattern": "^[\\w-]+$"
       }
     },
+    "helperButtons": {
+      "title": "Helper buttons",
+      "description": "Set the list of visible helper buttons.",
+      "default": [
+        "insert-cell-below",
+        "move-cell-down",
+        "move-cell-up",
+        "run-cell-and-select-next"
+      ],
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "insert-cell-below",
+              "move-cell-down",
+              "move-cell-up",
+              "run-cell-and-select-next"
+            ]
+          },
+          "uniqueItems": true
+        }
+      ]
+    },
     "leftMenu": {
       "title": "List of left menu items",
       "description": "An item is defined by a 'command' name and an 'icon' name + optionally a 'tooltip' and the 'cellType' on which it applies",

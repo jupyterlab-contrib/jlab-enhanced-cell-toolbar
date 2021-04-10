@@ -16,8 +16,8 @@ export class CellToolbarWidget extends Widget {
     commands: CommandRegistry,
     model: ICellModel,
     tagsList: ObservableList<string>,
-    leftMenuItems: ObservableList<ICellMenuItem>,
-    rightMenuItems: ObservableList<ICellMenuItem>,
+    leftMenuItems: ICellMenuItem[],
+    rightMenuItems: ICellMenuItem[],
     leftSpace = 0
   ) {
     super();

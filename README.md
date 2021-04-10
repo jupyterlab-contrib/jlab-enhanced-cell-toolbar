@@ -11,6 +11,15 @@ A cell toolbar for JupyterLab.
 ![Demonstration](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/default_look.png)
 
 There are some [Settings](#Settings) to tune the available buttons and the look of this extension.
+For example, to show only the tags, you can set the following settings:
+
+```json
+{
+    "helperButtons": null,
+    "leftMenu": null,
+    "rightMenu": null
+}
+```
 
 ## Requirements
 
@@ -53,6 +62,17 @@ conda remove -c conda-forge jlab-enhanced-cell-toolbar
 ```
 
 ![default tags](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/default_tags.png)
+
+
+- _helperButtons_: The list of helper buttons to display. For example, using the following settings:
+
+```json
+{
+    "helperButtons": [ "insert-cell-below", "run-cell-and-select-next"]
+}
+```
+
+![helper buttons](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/helper_buttons.png)
 
 - _leftMenu_ and _rightMenu_: The action buttons to be displayed on the left and right of the cell toolbar. For example, using the following settings:
 
