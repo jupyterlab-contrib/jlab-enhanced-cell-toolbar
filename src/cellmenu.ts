@@ -19,6 +19,33 @@ export class CellMenu extends Widget {
     this._addButtons(items);
   }
 
+  handleEvent(event: Event): void {
+    switch (event.type) {
+      case 'mousedown':
+      case 'click':
+        // Ensure the mouse event is not propagated on the cell.
+        // As buttons are hidden except on the selected cell, this is fine.
+        event.stopPropagation();
+        break;
+    }
+  }
+
+  /**
+   * Handle `after-attach` messages for the widget.
+   */
+  onAfterAttach(): void {
+    this.node.addEventListener('mousedown', this);
+    this.node.addEventListener('click', this);
+  }
+
+  /**
+   * Handle `before-detach` messages for the widget.
+   */
+  onBeforeDetach(): void {
+    this.node.removeEventListener('mousedown', this);
+    this.node.removeEventListener('click', this);
+  }
+
   protected _addButtons(items: ICellMenuItem[]): void {
     each(this.children(), widget => {
       widget.dispose();
