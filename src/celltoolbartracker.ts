@@ -11,17 +11,26 @@ import {
   addIcon,
   caretDownEmptyThinIcon,
   caretUpEmptyThinIcon,
+  LabIcon,
   markdownIcon,
   runIcon
 } from '@jupyterlab/ui-components';
-import { each } from '@lumino/algorithm';
+import { each, find } from '@lumino/algorithm';
 import { CommandRegistry } from '@lumino/commands';
 import { IDisposable } from '@lumino/disposable';
 import { PanelLayout, Widget } from '@lumino/widgets';
 import { CellToolbarWidget } from './celltoolbarwidget';
-import { codeIcon, deleteIcon, formatIcon } from './icon';
+import {
+  codeIcon,
+  deleteIcon,
+  formatIcon,
+  lockedTagsIcon,
+  unlockedTagsIcon
+} from './icon';
 import { PositionedButton } from './positionedbutton';
+import { TagsModel } from './tagsmodel';
 import { ICellMenuItem } from './tokens';
+import { ToggleButton } from './toolbarbutton';
 
 const DEFAULT_LEFT_MENU: ICellMenuItem[] = [
   // Originate from @jupyterlab/notebook-extension
@@ -87,6 +96,30 @@ export class CellToolbarTracker implements IDisposable {
     this._panel = panel;
     this._settings = settings;
 
+    // Add lock tag button
+    this._unlockTagsButton = new ToggleButton({
+      className: (): string => 'jp-enh-cell-nb-button',
+      icon: (state: boolean): LabIcon =>
+        state ? unlockedTagsIcon : lockedTagsIcon,
+      tooltip: (state: boolean): string =>
+        state ? 'Lock tags' : 'Unlock tags',
+      onClick: (state: boolean): void => {
+        for (const id in this._tagsModels) {
+          this._tagsModels[id].unlockedTags = state;
+        }
+      }
+    });
+    let insertionPoint = -1;
+    find(panel.toolbar.children(), (tbb, index) => {
+      insertionPoint = index; // It will be the last index or the cell type input
+      return tbb.hasClass('jp-Notebook-toolbarCellType');
+    });
+    panel.toolbar.insertItem(
+      insertionPoint + 1,
+      'edit-tags',
+      this._unlockTagsButton
+    );
+
     if (this._settings) {
       this._onSettingsChanged();
       this._settings.changed.connect(this._onSettingsChanged, this);
@@ -148,10 +181,15 @@ export class CellToolbarTracker implements IDisposable {
       rightMenu = rightMenu ?? [];
       leftSpace = leftSpace ?? 0;
 
-      const toolbar = new CellToolbarWidget(
-        this._commands,
+      const tagsModel = (this._tagsModels[model.id] = new TagsModel(
         model,
         this._allTags,
+        this._unlockTagsButton.toggled
+      ));
+
+      const toolbar = new CellToolbarWidget(
+        this._commands,
+        tagsModel,
         leftMenu,
         rightMenu,
         leftSpace
@@ -196,6 +234,10 @@ export class CellToolbarTracker implements IDisposable {
     const cell = this._getCell(model);
     if (cell) {
       this._findToolbarWidgets(cell).forEach(widget => widget.dispose());
+      if (this._tagsModels[model.id]) {
+        this._tagsModels[model.id].dispose();
+        delete this._tagsModels[model.id];
+      }
     }
   }
 
@@ -233,6 +275,8 @@ export class CellToolbarTracker implements IDisposable {
   private _previousDefaultTags = new Array<string>();
   private _panel: NotebookPanel | null;
   private _settings: ISettingRegistry.ISettings | null;
+  private _tagsModels: { [id: string]: TagsModel } = {};
+  private _unlockTagsButton: ToggleButton;
 }
 
 /**
