@@ -46,7 +46,7 @@ export interface IToggleButtonprops {
 export class ToggleButton extends ReactWidget {
   /**
    * Creates a toolbar toggle button
-   * 
+   *
    * Initial state is false
    *
    * @param props props for underlying `ToolbarButton` component
@@ -70,7 +70,7 @@ export class ToggleButton extends ReactWidget {
     }
   }
 
-  render() {
+  render(): JSX.Element {
     const p = {
       className: this.props.className
         ? this.props.className(this.toggled)
@@ -81,9 +81,9 @@ export class ToggleButton extends ReactWidget {
         ? this.props.tooltip(this.toggled)
         : undefined,
       onClick: this.props.onClick
-        ? () => {
+        ? (): void => {
             this.toggled = !this.toggled;
-            this.props.onClick!(this.toggled);
+            (this.props.onClick as (s: boolean) => void)(this.toggled);
           }
         : undefined,
       enabled: this.props.enabled ? this.props.enabled(this.toggled) : undefined
