@@ -6,6 +6,7 @@ import { PanelLayout, Widget } from '@lumino/widgets';
 import { TagsModel } from './tagsmodel';
 
 const CELL_TAGS_CLASS = 'jp-enh-cell-tags';
+const CELL_CLICKABLE_TAG_CLASS = 'jp-enh-cell-mod-click';
 
 /**
  * A container for cell tags.
@@ -155,6 +156,7 @@ export class TagTool extends Widget {
       widget.update();
       if (this._model.unlockedTags) {
         widget.show();
+        widget.addClass(CELL_CLICKABLE_TAG_CLASS);
       } else {
         if (
           widget.id === 'add-tag' ||
@@ -163,6 +165,7 @@ export class TagTool extends Widget {
           widget.hide();
         } else {
           widget.show();
+          widget.removeClass(CELL_CLICKABLE_TAG_CLASS);
         }
       }
     });
