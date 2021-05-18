@@ -8,7 +8,10 @@
 
 A cell toolbar for JupyterLab.
 
-![Demonstration](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/default_look.png)
+![Demonstration](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/default_look.gif)
+
+Tags are displayed as read-only by default. You can click on the notebook toolbar button to start editing the tags on the
+cell toolbars (as shown in the animation above).
 
 There are some [Settings](#Settings) to tune the available buttons and the look of this extension.
 For example, to show only the tags, you can set the following settings:
@@ -81,7 +84,9 @@ conda remove -c conda-forge jlab-enhanced-cell-toolbar
     "leftMenu": [
         {
           "command": "notebook:run-cell",
-          "icon": "ui-components:run"
+          "icon": "ui-components:run",
+          // Will only display the item on code cells.
+          "cellType": "code"
         }
     ],
     "rightMenu": [
