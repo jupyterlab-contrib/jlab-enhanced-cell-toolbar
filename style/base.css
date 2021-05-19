@@ -97,9 +97,12 @@
   margin: 0px 2px;
   padding: 0px 2px;
   border-radius: 4px;
-  cursor: pointer;
   /* Needed to ensure correct display */
   max-width: unset;
+}
+
+.jp-enh-cell-mod-click {  
+  cursor: pointer;
 }
 
 .jp-enh-cell-tags .tag input.add-tag {

@@ -1,9 +1,8 @@
-import { ICellModel } from '@jupyterlab/cells';
-import { ObservableList } from '@jupyterlab/observables';
 import { CommandRegistry } from '@lumino/commands';
 import { PanelLayout, Widget } from '@lumino/widgets';
 import { CellMenu } from './cellmenu';
 import { TagTool } from './tagbar';
+import { TagsModel } from './tagsmodel';
 import { ICellMenuItem } from './tokens';
 
 export const LEFT_SPACER_CLASSNAME = 'jp-enh-cell-left-space';
@@ -14,8 +13,7 @@ export const LEFT_SPACER_CLASSNAME = 'jp-enh-cell-left-space';
 export class CellToolbarWidget extends Widget {
   constructor(
     commands: CommandRegistry,
-    model: ICellModel,
-    tagsList: ObservableList<string>,
+    model: TagsModel,
     leftMenuItems: ICellMenuItem[],
     rightMenuItems: ICellMenuItem[],
     leftSpace = 0
@@ -31,7 +29,7 @@ export class CellToolbarWidget extends Widget {
     (this.layout as PanelLayout).addWidget(
       new CellMenu(commands, leftMenuItems)
     );
-    (this.layout as PanelLayout).addWidget(new TagTool(model, tagsList));
+    (this.layout as PanelLayout).addWidget(new TagTool(model));
     (this.layout as PanelLayout).addWidget(
       new CellMenu(commands, rightMenuItems)
     );

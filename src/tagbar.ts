@@ -1,16 +1,12 @@
-import { ICellModel } from '@jupyterlab/cells';
 import { AddWidget, TagWidget } from '@jupyterlab/celltags';
-import {
-  IObservableJSON,
-  IObservableList,
-  IObservableMap,
-  ObservableList
-} from '@jupyterlab/observables';
+import { IObservableJSON, IObservableMap } from '@jupyterlab/observables';
 import { toArray } from '@lumino/algorithm';
 import { ReadonlyPartialJSONValue } from '@lumino/coreutils';
 import { PanelLayout, Widget } from '@lumino/widgets';
+import { TagsModel } from './tagsmodel';
 
 const CELL_TAGS_CLASS = 'jp-enh-cell-tags';
+const CELL_CLICKABLE_TAG_CLASS = 'jp-enh-cell-mod-click';
 
 /**
  * A container for cell tags.
@@ -19,24 +15,24 @@ export class TagTool extends Widget {
   /**
    * Construct a new tag Tool.
    */
-  constructor(model: ICellModel, allTags: ObservableList<string>) {
+  constructor(model: TagsModel) {
     super();
     this._model = model;
-    this._tagList = allTags;
     this.layout = new PanelLayout();
     this.addClass(CELL_TAGS_CLASS);
     this._createTagInput();
 
-    allTags.changed.connect(this.onTagListChanged, this);
+    this._model.stateChanged.connect(this.onTagsModelChanged, this);
 
     // Update tag list
-    const tags: string[] = (model.metadata.get('tags') as string[]) || [];
+    const tags: string[] =
+      (model.cellModel.metadata.get('tags') as string[]) || [];
     if (tags.length > 0) {
-      allTags.pushAll(tags); // We don't care about duplicate here so we can remove all occurrences at will
+      model.tags.pushAll(tags); // We don't care about duplicate here so we can remove all occurrences at will
     } else {
       this.refreshTags(); // Force displaying default tags if no tags specified
     }
-    model.metadata.changed.connect(this.onCellMetadataChanged, this);
+    model.cellModel.metadata.changed.connect(this.onCellMetadataChanged, this);
   }
 
   dispose(): void {
@@ -44,8 +40,11 @@ export class TagTool extends Widget {
       return;
     }
 
-    this._model.metadata.changed.disconnect(this.onCellMetadataChanged, this);
-    this._tagList.changed.disconnect(this.onTagListChanged, this);
+    this._model.cellModel.metadata.changed.disconnect(
+      this.onCellMetadataChanged,
+      this
+    );
+    this._model.stateChanged.disconnect(this.onTagsModelChanged, this);
     super.dispose();
   }
 
@@ -57,7 +56,7 @@ export class TagTool extends Widget {
    * @returns A boolean representing whether it is applied.
    */
   checkApplied(name: string): boolean {
-    const tags = (this._model.metadata.get('tags') as string[]) || [];
+    const tags = (this._model.cellModel.metadata.get('tags') as string[]) || [];
 
     return tags.some(tag => tag === name);
   }
@@ -68,12 +67,16 @@ export class TagTool extends Widget {
    * @param name - The name of the tag.
    */
   addTag(name: string): void {
-    const tags = (this._model.metadata.get('tags') as string[]) || [];
+    if (!this._model.unlockedTags) {
+      // Style toggling is applied on the widget directly => force rerendering
+      this._refreshOneTag(name);
+    }
+    const tags = (this._model.cellModel.metadata.get('tags') as string[]) || [];
     const newTags = name
       .split(/[,\s]+/)
       .filter(tag => tag !== '' && !tags.includes(tag));
     // Update the cell metadata => tagList will be updated in metadata listener
-    this._model.metadata.set('tags', [...tags, ...newTags]);
+    this._model.cellModel.metadata.set('tags', [...tags, ...newTags]);
   }
 
   /**
@@ -82,8 +85,15 @@ export class TagTool extends Widget {
    * @param name - The name of the tag.
    */
   removeTag(name: string): void {
+    if (!this._model.unlockedTags) {
+      // Style toggling is applied on the widget directly => force rerendering
+      this._refreshOneTag(name);
+      return;
+    }
     // Need to copy as we splice a mutable otherwise
-    const tags = [...((this._model.metadata.get('tags') as string[]) || [])];
+    const tags = [
+      ...((this._model.cellModel.metadata.get('tags') as string[]) || [])
+    ];
     const idx = tags.indexOf(name);
     if (idx > -1) {
       tags.splice(idx, 1);
@@ -91,9 +101,9 @@ export class TagTool extends Widget {
 
     // Update the cell metadata => tagList will be update in metadata listener
     if (tags.length === 0) {
-      this._model.metadata.delete('tags');
+      this._model.cellModel.metadata.delete('tags');
     } else {
-      this._model.metadata.set('tags', tags);
+      this._model.cellModel.metadata.set('tags', tags);
     }
   }
 
@@ -102,7 +112,7 @@ export class TagTool extends Widget {
    */
   refreshTags(): void {
     const layout = this.layout as PanelLayout;
-    const tags: string[] = [...new Set(toArray(this._tagList))];
+    const tags: string[] = [...new Set(toArray(this._model.tags))];
     const allTags = [...tags].sort((a: string, b: string) => (a > b ? 1 : -1));
 
     // Dispose removed tags
@@ -127,11 +137,6 @@ export class TagTool extends Widget {
       );
     });
 
-    // Update all tags widgets
-    layout.widgets.forEach(widget => {
-      widget.update();
-    });
-
     // Sort the widgets in tag alphabetical order
     [...layout.widgets].forEach((widget: Widget, index: number) => {
       let tagIndex = allTags.findIndex(
@@ -145,6 +150,25 @@ export class TagTool extends Widget {
         layout.insertWidget(tagIndex, widget);
       }
     });
+
+    // Update all tags widgets
+    layout.widgets.forEach(widget => {
+      widget.update();
+      if (this._model.unlockedTags) {
+        widget.show();
+        widget.addClass(CELL_CLICKABLE_TAG_CLASS);
+      } else {
+        if (
+          widget.id === 'add-tag' ||
+          !this.checkApplied((widget as TagWidget).name)
+        ) {
+          widget.hide();
+        } else {
+          widget.show();
+          widget.removeClass(CELL_CLICKABLE_TAG_CLASS);
+        }
+      }
+    });
   }
 
   /**
@@ -155,6 +179,19 @@ export class TagTool extends Widget {
     const input = new AddWidget();
     input.id = 'add-tag';
     layout.addWidget(input);
+  }
+
+  /**
+   * Force refreshing one tag widget
+   *
+   * @param name Tag
+   */
+  protected _refreshOneTag(name: string): void {
+    [...(this.layout as PanelLayout).widgets]
+      .find(
+        widget => widget.id !== 'add-tag' && (widget as TagWidget).name === name
+      )
+      ?.update();
   }
 
   /**
@@ -196,10 +233,10 @@ export class TagTool extends Widget {
 
       oldTags.forEach(tag => {
         if (!newTags.includes(tag)) {
-          this._tagList.removeValue(tag);
+          this._model.tags.removeValue(tag);
         }
       });
-      this._tagList.pushAll(newTags.filter(tag => !oldTags.includes(tag)));
+      this._model.tags.pushAll(newTags.filter(tag => !oldTags.includes(tag)));
     }
   }
 
@@ -209,13 +246,9 @@ export class TagTool extends Widget {
    * @param list Shared tag list
    * @param changes Tag list changes
    */
-  protected onTagListChanged(
-    list: ObservableList<string>,
-    changes: IObservableList.IChangedArgs<string>
-  ): void {
+  protected onTagsModelChanged(): void {
     this.refreshTags();
   }
 
-  public _model: ICellModel;
-  private _tagList: ObservableList<string>;
+  private _model: TagsModel;
 }

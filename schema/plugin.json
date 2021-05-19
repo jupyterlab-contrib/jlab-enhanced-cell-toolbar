@@ -109,17 +109,22 @@
   "definitions": {
     "menuItem": {
       "type": "object",
-      "properties": {
+      "properties": {        
         "command": {
+          "title": "Command ID to be executed",
           "type": "string"
         },
         "icon": {
+          "title": "Item icon ID",
           "type": "string"
         },
         "tooltip": {
+          "title": "Item tooltip",
           "type": "string"
         },
         "cellType": {
+          "title": "Cell type on which to display the item",
+          "description": "Left empty to define on all cells",
           "type": "string",
           "enum": [
             "code",
