@@ -100,7 +100,7 @@ export class CellToolbarTracker implements IDisposable {
     this._unlockTagsButton = new ToggleButton({
       className: (): string => 'jp-enh-cell-nb-button',
       icon: (state: boolean): LabIcon =>
-        state ? unlockedTagsIcon : lockedTagsIcon,
+        state ? lockedTagsIcon : unlockedTagsIcon,
       tooltip: (state: boolean): string =>
         state ? 'Lock tags' : 'Unlock tags',
       onClick: (state: boolean): void => {
