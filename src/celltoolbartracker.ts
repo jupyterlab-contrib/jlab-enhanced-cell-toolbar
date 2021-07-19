@@ -179,13 +179,8 @@ export class CellToolbarTracker implements IDisposable {
     const cell = this._getCell(model);
 
     if (cell) {
-      const {
-        helperButtons,
-        leftMenu,
-        rightMenu,
-        leftSpace,
-        floatPosition
-      } = this._settings?.composite as any;
+      const { helperButtons, leftMenu, rightMenu, leftSpace, floatPosition } =
+        (this._settings?.composite as any) ?? {};
 
       const helperButtons_ =
         helperButtons === null
