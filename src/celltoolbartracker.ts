@@ -99,6 +99,10 @@ export class CellToolbarTracker implements IDisposable {
     // Add lock tag button
     this._unlockTagsButton = new ToggleButton({
       className: (): string => 'jp-enh-cell-nb-button',
+      enabled: (): boolean =>
+        (!this._panel?.context.model.readOnly &&
+          this._panel?.context.contentsModel?.writable) ??
+        false,
       icon: (state: boolean): LabIcon =>
         state ? lockedTagsIcon : unlockedTagsIcon,
       tooltip: (state: boolean): string =>
@@ -109,6 +113,7 @@ export class CellToolbarTracker implements IDisposable {
         }
       }
     });
+
     let insertionPoint = -1;
     find(panel.toolbar.children(), (tbb, index) => {
       insertionPoint = index; // It will be the last index or the cell type input
@@ -127,6 +132,8 @@ export class CellToolbarTracker implements IDisposable {
 
     const cells = this._panel.context.model.cells;
     cells.changed.connect(this.updateConnectedCells, this);
+
+    panel.context.fileChanged.connect(this._onFileChanged, this);
   }
 
   get isDisposed(): boolean {
@@ -148,6 +155,9 @@ export class CellToolbarTracker implements IDisposable {
       cells.changed.disconnect(this.updateConnectedCells, this);
       each(cells.iter(), model => this._removeToolbar(model));
     }
+
+    this._panel?.context.fileChanged.disconnect(this._onFileChanged);
+
     this._panel = null;
   }
 
@@ -239,6 +249,13 @@ export class CellToolbarTracker implements IDisposable {
         delete this._tagsModels[model.id];
       }
     }
+  }
+
+  /**
+   * Callback on file changed
+   */
+  private _onFileChanged(): void {
+    this._unlockTagsButton.update();
   }
 
   /**
