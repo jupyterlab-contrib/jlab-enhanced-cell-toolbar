@@ -1,6 +1,6 @@
 /* Patch default to reduce vertical blank space */
 .jp-Notebook .jp-Cell {
-  padding: 0px var(--jp-cell-padding);
+  padding: 21px var(--jp-cell-padding) 2px var(--jp-cell-padding);
 }
 
 .lm-Widget.jp-enh-cell-button {
@@ -49,23 +49,30 @@
   );
 }
 
-.jp-enh-cell-toolbar {
+.jp-mod-active .jp-enh-cell-toolbar {
   display: flex;
+}
+
+.jp-enh-cell-toolbar {
+  display: none;
   flex-direction: row;
   margin-left: calc(
     var(--jp-cell-collapser-width) + var(--jp-cell-prompt-width)
   );
   padding: 2px 0px;
   min-height: 22px;
+  z-index: 10;
+}
+
+.jp-enh-cell-toolbar.jp-overlap {
+  background-color: var(--jp-layout-color2);
+  border: solid var(--jp-border-width) var(--jp-border-color0);
+  border-radius: var(--jp-border-radius);
 }
 
 .jp-enh-cell-menu {
-  display: none;
-  flex-direction: row;
-}
-
-.jp-mod-active .jp-enh-cell-menu {
   display: flex;
+  flex-direction: row;
 }
 
 .jp-enh-cell-menu button.jp-ToolbarButtonComponent {
@@ -87,7 +94,6 @@
 .jp-enh-cell-tags {
   display: flex;
   flex-direction: row;
-  flex: 1 1 auto;
   justify-content: flex-end;
 }
 
@@ -101,7 +107,7 @@
   max-width: unset;
 }
 
-.jp-enh-cell-mod-click {  
+.jp-enh-cell-mod-click {
   cursor: pointer;
 }
 
@@ -109,12 +115,8 @@
   font-size: 1em;
 }
 
-.jp-mod-active .jp-enh-cell-tags .tag.unapplied-tag {
-  display: flex;
-}
-
 .jp-enh-cell-tags .tag.unapplied-tag {
-  display: none;
+  display: flex;
 }
 
 .jp-enh-cell-tags .unapplied-tag,

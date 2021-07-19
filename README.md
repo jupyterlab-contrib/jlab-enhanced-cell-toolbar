@@ -26,7 +26,7 @@ For example, to show only the tags, you can set the following settings:
 
 ## Requirements
 
-- JupyterLab >= 3.0
+-   JupyterLab >= 3.0
 
 For JupyterLab 2.x, have look [there](https://github.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/tree/2.x).
 
@@ -56,7 +56,7 @@ conda remove -c conda-forge jlab-enhanced-cell-toolbar
 
 ## Settings
 
-- _defaultTags_: The list of default available tags. For example, using the following settings:
+-   _defaultTags_: The list of default available tags. For example, using the following settings:
 
 ```json
 {
@@ -66,33 +66,32 @@ conda remove -c conda-forge jlab-enhanced-cell-toolbar
 
 ![default tags](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/default_tags.png)
 
-
-- _helperButtons_: The list of helper buttons to display. For example, using the following settings:
+-   _helperButtons_: The list of helper buttons to display. For example, using the following settings:
 
 ```json
 {
-    "helperButtons": [ "insert-cell-below", "run-cell-and-select-next"]
+    "helperButtons": ["insert-cell-below", "run-cell-and-select-next"]
 }
 ```
 
 ![helper buttons](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/helper_buttons.png)
 
-- _leftMenu_ and _rightMenu_: The action buttons to be displayed on the left and right of the cell toolbar. For example, using the following settings:
+-   _leftMenu_ and _rightMenu_: The action buttons to be displayed on the left and right of the cell toolbar. For example, using the following settings:
 
 ```json
 {
     "leftMenu": [
         {
-          "command": "notebook:run-cell",
-          "icon": "ui-components:run",
-          // Will only display the item on code cells.
-          "cellType": "code"
+            "command": "notebook:run-cell",
+            "icon": "ui-components:run",
+            // Will only display the item on code cells.
+            "cellType": "code"
         }
     ],
     "rightMenu": [
         {
-          "command": "notebook:delete-cell",
-          "icon": "@jlab-enhanced/cell-toolbar:delete"
+            "command": "notebook:delete-cell",
+            "icon": "@jlab-enhanced/cell-toolbar:delete"
         }
     ]
 }
@@ -102,7 +101,7 @@ conda remove -c conda-forge jlab-enhanced-cell-toolbar
 
 > The default JupyterLab icon names can be found in the [ui-components](https://github.com/jupyterlab/jupyterlab/blob/master/packages/ui-components/src/icon/iconimports.ts) package.
 
-- _leftSpace_: The left empty white space width in pixel. For example, using the following settings:
+-   _leftSpace_: The left empty white space width in pixel. For example, using the following settings:
 
 ```json
 {
@@ -112,13 +111,45 @@ conda remove -c conda-forge jlab-enhanced-cell-toolbar
 
 ![left_space](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/left_space.png)
 
+> This setting is ignored if `floatPosition` is defined.
+
+-   _floatPosition_: Floating cell toolbar position in pixel.
+
+For example, to obtain a cell toolbar partially overlapping the cell:
+
+```json
+{
+    "floatPosition": {
+        "right": 20,
+        "top": 10
+    }
+}
+```
+
+Another example, to put the toolbar inside the cell:
+
+![colab_toolbar](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/cell_toolbar_a_la_colab.png)
+
+```json
+{
+    "floatPosition": {
+        "right": 20,
+        "top": 24
+    }
+}
+```
+
+![inside_cell_toolbar](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/toolbar_inside_cell.png)
+
+> The `leftSpace` setting is ignored if this one is defined.
+
 ## Alternatives
 
 Don't like what you see here? Try these other approaches:
 
-- [jupyterlab-show-cell-tags](https://github.com/mje-nz/jupyterlab-show-cell-tags)
-- [jupyterlab-colabinspired-codecellbtn](https://github.com/eddienko/jupyterlab-colabinspired-codecellbtn)
-- [jupyterlab-codecellbtn](https://github.com/ibqn/jupyterlab-codecellbtn)
+-   [jupyterlab-show-cell-tags](https://github.com/mje-nz/jupyterlab-show-cell-tags)
+-   [jupyterlab-colabinspired-codecellbtn](https://github.com/eddienko/jupyterlab-colabinspired-codecellbtn)
+-   [jupyterlab-codecellbtn](https://github.com/ibqn/jupyterlab-codecellbtn)
 
 ## Contributing
 

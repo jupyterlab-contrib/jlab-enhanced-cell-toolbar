@@ -4,8 +4,7 @@ import { CellMenu } from './cellmenu';
 import { TagTool } from './tagbar';
 import { TagsModel } from './tagsmodel';
 import { ICellMenuItem } from './tokens';
-
-export const LEFT_SPACER_CLASSNAME = 'jp-enh-cell-left-space';
+import { getCSSVar } from './utils';
 
 /**
  * Cell Toolbar Widget
@@ -16,20 +15,41 @@ export class CellToolbarWidget extends Widget {
     model: TagsModel,
     leftMenuItems: ICellMenuItem[],
     rightMenuItems: ICellMenuItem[],
-    leftSpace = 0
+    leftSpace = 0,
+    position: { right: number; top: number } | null = null
   ) {
     super();
     this.layout = new PanelLayout();
     this.addClass('jp-enh-cell-toolbar');
 
-    const leftSpacer = new Widget();
-    leftSpacer.addClass(LEFT_SPACER_CLASSNAME);
-    leftSpacer.node.style.width = `${leftSpace}px`;
-    (this.layout as PanelLayout).addWidget(leftSpacer);
+    const tagTool = new TagTool(model);
+
+    // Set style
+    this.node.style.position = 'absolute';
+    if (position) {
+      this.node.style.right = `${position.right}px`;
+      this.node.style.top = `${position.top}px`;
+      this.node.style.justifyContent = 'flex-end';
+      this.node.style.width = 'max-content';
+      // Set a background if the toolbar overlaps the border
+      if (position.top < 22) {
+        this.addClass('jp-overlap');
+      }
+    } else {
+      this.node.style.left = `${leftSpace}px`;
+      this.node.style.top = '0px';
+      this.node.style.width = `calc( 100% - ${leftSpace}px - ${getCSSVar(
+        '--jp-cell-collapser-width'
+      )} - ${getCSSVar('--jp-cell-prompt-width')} - ${getCSSVar(
+        '--jp-cell-padding'
+      )} )`;
+      tagTool.node.style.flex = '1 1 auto';
+    }
+
     (this.layout as PanelLayout).addWidget(
       new CellMenu(commands, leftMenuItems)
     );
-    (this.layout as PanelLayout).addWidget(new TagTool(model));
+    (this.layout as PanelLayout).addWidget(tagTool);
     (this.layout as PanelLayout).addWidget(
       new CellMenu(commands, rightMenuItems)
     );
