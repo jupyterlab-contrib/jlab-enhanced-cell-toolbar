@@ -49,12 +49,8 @@
   );
 }
 
-.jp-mod-active .jp-enh-cell-toolbar {
-  display: flex;
-}
-
 .jp-enh-cell-toolbar {
-  display: none;
+  display: flex;
   flex-direction: row;
   margin-left: calc(
     var(--jp-cell-collapser-width) + var(--jp-cell-prompt-width)
@@ -66,13 +62,18 @@
 
 .jp-enh-cell-toolbar.jp-overlap {
   background-color: var(--jp-layout-color2);
-  border: solid var(--jp-border-width) var(--jp-border-color0);
+  /* Use shadow instead of border so empty toolbar does not collapse as thin vertical line */
+  box-shadow: var(--jp-elevation-z1);
   border-radius: var(--jp-border-radius);
 }
 
 .jp-enh-cell-menu {
-  display: flex;
+  display: none;
   flex-direction: row;
+}
+
+.jp-mod-active .jp-enh-cell-menu {
+  display: flex;
 }
 
 .jp-enh-cell-menu button.jp-ToolbarButtonComponent {
@@ -115,8 +116,12 @@
   font-size: 1em;
 }
 
-.jp-enh-cell-tags .tag.unapplied-tag {
+.jp-mod-active .jp-enh-cell-tags .tag.unapplied-tag {
   display: flex;
+}
+
+.jp-enh-cell-tags .tag.unapplied-tag {
+  display: none;
 }
 
 .jp-enh-cell-tags .unapplied-tag,
