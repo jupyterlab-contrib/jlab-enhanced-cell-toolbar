@@ -92,6 +92,10 @@
   display: block;
 }
 
+.jp-enh-cell-toolbar .jp-Toolbar-spacer {
+  flex: 1 1 auto;
+}
+
 .jp-enh-cell-tags {
   display: flex;
   flex-direction: row;

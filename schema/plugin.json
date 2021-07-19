@@ -113,6 +113,12 @@
         }
       ],
       "default": null
+    },
+    "showTags": {
+      "title": "Tags editor visibility",
+      "description": "Whether to show the tags editor widget (default) or not.",
+      "type": "boolean",
+      "default": true
     }
   },
   "additionalProperties": false,
