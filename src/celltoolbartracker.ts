@@ -169,17 +169,22 @@ export class CellToolbarTracker implements IDisposable {
     const cell = this._getCell(model);
 
     if (cell) {
-      let { helperButtons, leftMenu, rightMenu, leftSpace } = this._settings
-        ?.composite as any;
+      const {
+        helperButtons,
+        leftMenu,
+        rightMenu,
+        leftSpace,
+        floatPosition
+      } = this._settings?.composite as any;
 
-      helperButtons =
+      const helperButtons_ =
         helperButtons === null
           ? []
           : helperButtons ??
             DEFAULT_HELPER_BUTTONS.map(entry => entry.command.split(':')[1]);
-      leftMenu = leftMenu === null ? [] : leftMenu ?? DEFAULT_LEFT_MENU;
-      rightMenu = rightMenu ?? [];
-      leftSpace = leftSpace ?? 0;
+      const leftMenu_ = leftMenu === null ? [] : leftMenu ?? DEFAULT_LEFT_MENU;
+      const rightMenu_ = rightMenu ?? [];
+      const leftSpace_ = leftSpace ?? 0;
 
       const tagsModel = (this._tagsModels[model.id] = new TagsModel(
         model,
@@ -190,15 +195,16 @@ export class CellToolbarTracker implements IDisposable {
       const toolbar = new CellToolbarWidget(
         this._commands,
         tagsModel,
-        leftMenu,
-        rightMenu,
-        leftSpace
+        leftMenu_,
+        rightMenu_,
+        leftSpace_,
+        floatPosition
       );
       toolbar.addClass(CELL_BAR_CLASS);
       (cell.layout as PanelLayout).insertWidget(0, toolbar);
 
       DEFAULT_HELPER_BUTTONS.filter(entry =>
-        (helperButtons as string[]).includes(entry.command.split(':')[1])
+        (helperButtons_ as string[]).includes(entry.command.split(':')[1])
       ).forEach(entry => {
         if (this._commands.hasCommand(entry.command)) {
           const { cellType, command, tooltip, ...others } = entry;

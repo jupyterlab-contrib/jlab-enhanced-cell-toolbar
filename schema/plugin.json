@@ -6,14 +6,25 @@
     "defaultTags": {
       "title": "List of Default Tags",
       "description": "List of tags to always display for quick selection.",
-      "default": [
-        "parameters"
-      ],
+      "default": ["parameters"],
       "type": "array",
       "items": {
         "type": "string",
         "pattern": "^[\\w-]+$"
       }
+    },
+    "floatPosition": {
+      "title": "Floating cell toolbar position",
+      "description": "Place the cell toolbar above the cell. If set, `leftSpace` is ignored.",
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/definitions/position"
+        }
+      ],
+      "default": null
     },
     "helperButtons": {
       "title": "Helper buttons",
@@ -82,7 +93,7 @@
     },
     "leftSpace": {
       "title": "Cell toolbar empty left space size",
-      "description": "Size of the empty space left of the cell toolbar in px.",
+      "description": "Size of the empty space left of the cell toolbar in px. Ignored if `floatPosition` is not null.",
       "type": "number",
       "minimum": 0,
       "default": 0
@@ -109,7 +120,7 @@
   "definitions": {
     "menuItem": {
       "type": "object",
-      "properties": {        
+      "properties": {
         "command": {
           "title": "Command ID to be executed",
           "type": "string"
@@ -126,18 +137,29 @@
           "title": "Cell type on which to display the item",
           "description": "Left empty to define on all cells",
           "type": "string",
-          "enum": [
-            "code",
-            "markdown",
-            "raw"
-          ]
+          "enum": ["code", "markdown", "raw"]
         }
       },
       "additionalProperties": false,
-      "required": [
-        "command",
-        "icon"
-      ]
+      "required": ["command", "icon"]
+    },
+    "position": {
+      "properties": {
+        "right": {
+          "title": "Right distance in pixels",
+          "type": "number",
+          "minimum": 0,
+          "default": 0
+        },
+        "top": {
+          "title": "Top distance in pixels",
+          "type": "number",
+          "minimum": 0,
+          "default": 0
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
     }
   }
 }
