@@ -66,6 +66,36 @@ conda remove -c conda-forge jlab-enhanced-cell-toolbar
 
 ![default tags](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/default_tags.png)
 
+-   _floatPosition_: Floating cell toolbar position in pixel.
+
+For example, to obtain a cell toolbar partially overlapping the cell:
+
+```json
+{
+    "floatPosition": {
+        "right": 20,
+        "top": 10
+    }
+}
+```
+
+Another example, to put the toolbar inside the cell:
+
+![colab_toolbar](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/cell_toolbar_a_la_colab.png)
+
+```json
+{
+    "floatPosition": {
+        "right": 20,
+        "top": 24
+    }
+}
+```
+
+![inside_cell_toolbar](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/toolbar_inside_cell.png)
+
+> The `leftSpace` setting is ignored if this one is defined.
+
 -   _helperButtons_: The list of helper buttons to display. For example, using the following settings:
 
 ```json
@@ -113,35 +143,15 @@ conda remove -c conda-forge jlab-enhanced-cell-toolbar
 
 > This setting is ignored if `floatPosition` is defined.
 
--   _floatPosition_: Floating cell toolbar position in pixel.
-
-For example, to obtain a cell toolbar partially overlapping the cell:
+-   _showTags_: Whether to show (default) or not the tags widget. For example, using the following settings will hide the tags:
 
 ```json
 {
-    "floatPosition": {
-        "right": 20,
-        "top": 10
-    }
+    "showTags": false
 }
 ```
 
-Another example, to put the toolbar inside the cell:
-
-![colab_toolbar](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/cell_toolbar_a_la_colab.png)
-
-```json
-{
-    "floatPosition": {
-        "right": 20,
-        "top": 24
-    }
-}
-```
-
-![inside_cell_toolbar](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/toolbar_inside_cell.png)
-
-> The `leftSpace` setting is ignored if this one is defined.
+![show_tags](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/show_tags.png)
 
 ## Alternatives
 

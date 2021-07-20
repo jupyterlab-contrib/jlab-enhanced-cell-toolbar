@@ -1,3 +1,4 @@
+import { Toolbar } from '@jupyterlab/apputils';
 import { CommandRegistry } from '@lumino/commands';
 import { PanelLayout, Widget } from '@lumino/widgets';
 import { CellMenu } from './cellmenu';
@@ -12,7 +13,7 @@ import { getCSSVar } from './utils';
 export class CellToolbarWidget extends Widget {
   constructor(
     commands: CommandRegistry,
-    model: TagsModel,
+    model: TagsModel | null,
     leftMenuItems: ICellMenuItem[],
     rightMenuItems: ICellMenuItem[],
     leftSpace = 0,
@@ -22,7 +23,9 @@ export class CellToolbarWidget extends Widget {
     this.layout = new PanelLayout();
     this.addClass('jp-enh-cell-toolbar');
 
-    const tagTool = new TagTool(model);
+    (this.layout as PanelLayout).addWidget(
+      new CellMenu(commands, leftMenuItems)
+    );
 
     // Set style
     this.node.style.position = 'absolute';
@@ -43,13 +46,13 @@ export class CellToolbarWidget extends Widget {
       )} - ${getCSSVar('--jp-cell-prompt-width')} - ${getCSSVar(
         '--jp-cell-padding'
       )} )`;
-      tagTool.node.style.flex = '1 1 auto';
+
+      (this.layout as PanelLayout).addWidget(Toolbar.createSpacerItem());
     }
 
-    (this.layout as PanelLayout).addWidget(
-      new CellMenu(commands, leftMenuItems)
-    );
-    (this.layout as PanelLayout).addWidget(tagTool);
+    if (model) {
+      (this.layout as PanelLayout).addWidget(new TagTool(model));
+    }
     (this.layout as PanelLayout).addWidget(
       new CellMenu(commands, rightMenuItems)
     );

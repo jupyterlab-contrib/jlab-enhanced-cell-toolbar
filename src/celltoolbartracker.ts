@@ -184,8 +184,9 @@ export class CellToolbarTracker implements IDisposable {
         leftMenu,
         rightMenu,
         leftSpace,
-        floatPosition
-      } = this._settings?.composite as any;
+        floatPosition,
+        showTags
+      } = (this._settings?.composite as any) ?? {};
 
       const helperButtons_ =
         helperButtons === null
@@ -195,12 +196,15 @@ export class CellToolbarTracker implements IDisposable {
       const leftMenu_ = leftMenu === null ? [] : leftMenu ?? DEFAULT_LEFT_MENU;
       const rightMenu_ = rightMenu ?? [];
       const leftSpace_ = leftSpace ?? 0;
+      const showTags_ = showTags ?? true;
 
-      const tagsModel = (this._tagsModels[model.id] = new TagsModel(
-        model,
-        this._allTags,
-        this._unlockTagsButton.toggled
-      ));
+      const tagsModel = showTags_
+        ? (this._tagsModels[model.id] = new TagsModel(
+            model,
+            this._allTags,
+            this._unlockTagsButton.toggled
+          ))
+        : null;
 
       const toolbar = new CellToolbarWidget(
         this._commands,
@@ -268,6 +272,12 @@ export class CellToolbarTracker implements IDisposable {
    * Call back on settings changes
    */
   private _onSettingsChanged(): void {
+    if (this._settings?.composite['showTags'] ?? true) {
+      this._unlockTagsButton.show();
+    } else {
+      this._unlockTagsButton.hide();
+    }
+
     // Reset toolbar when settings changes
     if (this._panel?.context.model.cells) {
       each(this._panel?.context.model.cells.iter(), model => {
@@ -278,7 +288,7 @@ export class CellToolbarTracker implements IDisposable {
 
     // Update tags
     const newDefaultTags =
-      (this._settings?.composite['defaultTags'] as string[]) || [];
+      (this._settings?.composite['defaultTags'] as string[]) ?? [];
     // Update default tag in shared tag list
     const toAdd = newDefaultTags.filter(
       tag => !this._previousDefaultTags.includes(tag)
