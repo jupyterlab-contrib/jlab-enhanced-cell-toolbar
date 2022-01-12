@@ -34,16 +34,16 @@ export class CellMenu extends Widget {
    * Handle `after-attach` messages for the widget.
    */
   onAfterAttach(): void {
-    this.node.addEventListener('mousedown', this);
-    this.node.addEventListener('click', this);
+    this.node.addEventListener('mousedown', this.handleEvent.bind(this));
+    this.node.addEventListener('click', this.handleEvent.bind(this));
   }
 
   /**
    * Handle `before-detach` messages for the widget.
    */
   onBeforeDetach(): void {
-    this.node.removeEventListener('mousedown', this);
-    this.node.removeEventListener('click', this);
+    this.node.removeEventListener('mousedown', this.handleEvent.bind(this));
+    this.node.removeEventListener('click', this.handleEvent.bind(this));
   }
 
   protected _addButtons(items: ICellMenuItem[]): void {
