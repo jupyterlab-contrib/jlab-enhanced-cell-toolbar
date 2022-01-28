@@ -2,71 +2,48 @@
 jlab-enhanced-cell-toolbar setup
 """
 import json
-import pathlib
+import sys
+from pathlib import Path
 
 import setuptools
-from jupyter_packaging import (
-    create_cmdclass, install_npm, ensure_targets,
-    combine_commands, skip_if_exists
-)
-from packaging.version import parse
 
-HERE = pathlib.Path(__file__).parent.resolve()
+HERE = Path(__file__).parent.resolve()
 
 # The name of the project
-name="jlab_enhanced_cell_toolbar"
+name = "jlab-enhanced-cell-toolbar"
 
-# Get our version
-with (HERE / 'package.json').open() as f:
-    version = json.load(f)['version']
-
-lab_path = HERE / name / "labextension"
+lab_path = (HERE / name.replace("-", "_") / "labextension")
 
 # Representative files that should exist after a successful build
-jstargets = [
-    str(lab_path / "package.json"),
-]
-
-package_data_spec = {
-    name: [
-        "*"
-    ]
-}
+ensured_targets = [
+    str(lab_path / "package.json")]
 
 labext_name = "@jlab-enhanced/cell-toolbar"
 
 data_files_spec = [
-    ("share/jupyter/labextensions/%s" % labext_name, str(lab_path), "**"),
-    ("share/jupyter/labextensions/%s" % labext_name, str(HERE), "install.json"),
+    ("share/jupyter/labextensions/%s" % labext_name, str(lab_path.relative_to(HERE)), "**"),
+    ("share/jupyter/labextensions/%s" % labext_name, str("."), "install.json"),
 ]
-
-cmdclass = create_cmdclass("jsdeps",
-    package_data_spec=package_data_spec,
-    data_files_spec=data_files_spec
-)
-
-js_command = combine_commands(
-    install_npm(str(HERE), build_cmd="build:prod", npm=["jlpm"]),
-    ensure_targets(jstargets),
-)
-
-is_repo = (HERE / ".git").exists()
-if is_repo:
-    cmdclass["jsdeps"] = js_command
-else:
-    cmdclass["jsdeps"] = skip_if_exists(jstargets, js_command)
 
 long_description = (HERE / "README.md").read_text()
 
+# Get the package info from package.json
+pkg_json = json.loads((HERE / "package.json").read_bytes())
+version = (
+    pkg_json["version"]
+    .replace("-alpha.", "a")
+    .replace("-beta.", "b")
+    .replace("-rc.", "rc")
+) 
+
 setup_args = dict(
     name=name.replace("_", "-"),
-    version=str(parse(version)),
+    version=version,
     url="https://github.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar.git",
     author="Frederic COLLONVAL",
     description="A cell toolbar for JupyterLab.",
     long_description= long_description,
     long_description_content_type="text/markdown",
-    cmdclass= cmdclass,
     packages=setuptools.find_packages(),
     install_requires=[
         "jupyterlab>=3.0.0rc13,==3.*",
@@ -89,6 +66,23 @@ setup_args = dict(
     ],
 )
 
+try:
+    from jupyter_packaging import (
+        wrap_installers,
+        npm_builder,
+        get_data_files
+    )
+    post_develop = npm_builder(
+        build_cmd="install:extension", source_dir="src", build_dir=lab_path
+    )
+    setup_args["cmdclass"] = wrap_installers(post_develop=post_develop, ensured_targets=ensured_targets)
+    setup_args["data_files"] = get_data_files(data_files_spec)
+except ImportError as e:
+    import logging
+    logging.basicConfig(format="%(levelname)s: %(message)s")
+    logging.warning("Build tool `jupyter-packaging` is missing. Install it with pip or conda.")
+    if not ("--name" in sys.argv or "--version" in sys.argv):
+        raise e
 
 if __name__ == "__main__":
     setuptools.setup(**setup_args)
