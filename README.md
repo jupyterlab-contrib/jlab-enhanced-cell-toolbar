@@ -80,9 +80,10 @@ For example, to obtain a cell toolbar partially overlapping the cell:
 }
 ```
 
-Another example, to put the toolbar inside the cell:
-
 ![colab_toolbar](https://raw.githubusercontent.com/jupyterlab-contrib/jlab-enhanced-cell-toolbar/main/docs/cell_toolbar_a_la_colab.png)
+
+
+Another example, to put the toolbar inside the cell:
 
 ```json
 {
@@ -109,7 +110,7 @@ Another example, to put the toolbar inside the cell:
 
 -   _leftMenu_ and _rightMenu_: The action buttons to be displayed on the left and right of the cell toolbar. For example, using the following settings:
 
-```json
+```json5
 {
     "leftMenu": [
         {
