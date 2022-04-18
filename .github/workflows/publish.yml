@@ -21,12 +21,12 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install jupyterlab~=3.0 jupyter_packaging~=0.7.9 setuptools>=40.8.0 wheel twine
+          python -m pip install jupyterlab~=3.0 jupyter_packaging~=0.10,<2 build twine
       - name: Build and publish package
         run: |
           jlpm
 
-          python setup.py sdist bdist_wheel
+          python -m build
           twine upload dist/*
 
           npm publish --access=public
