@@ -29,6 +29,10 @@
 
 .jp-enh-cell-run-cell-and-select-next {
   left: 46px;
+  top: 21px;
+}
+
+.jp-CodeCell .jp-enh-cell-run-cell-and-select-next {
   top: 46px;
 }
 
@@ -45,18 +49,22 @@
 .jp-enh-cell-insert-cell-below {
   bottom: -19px;
   left: calc(
-    var(--jp-cell-collapser-width) + var(--jp-cell-prompt-width) - 10px
+    var(--jp-cell-padding) + var(--jp-cell-collapser-width) +
+      var(--jp-cell-prompt-width) - 16px
   );
 }
 
 .jp-enh-cell-toolbar {
   display: flex;
   flex-direction: row;
+  align-items: center;
   margin-left: calc(
-    var(--jp-cell-collapser-width) + var(--jp-cell-prompt-width)
+    var(--jp-cell-padding) + var(--jp-cell-collapser-width) +
+      var(--jp-cell-prompt-width)
   );
   padding: 2px 0px;
   min-height: 22px;
+  height: 22px;
   z-index: 6;
 }
 
@@ -67,33 +75,20 @@
   border-radius: var(--jp-border-radius);
 }
 
-.jp-enh-cell-menu {
-  display: none;
-  flex-direction: row;
-}
-
-.jp-mod-active .jp-enh-cell-menu {
-  display: flex;
-}
-
-.jp-enh-cell-menu button.jp-ToolbarButtonComponent {
-  height: 16px;
-  cursor: pointer;
-}
-
-.jp-enh-cell-menu .jp-ToolbarButton button {
+.jp-enh-cell-toolbar .jp-ToolbarButton,
+.jp-enh-cell-toolbar .jp-CommandToolbarButton,
+.jp-enh-cell-toolbar .jp-Toolbar-spacer {
   display: none;
 }
 
-.jp-enh-cell-menu .jp-ToolbarButton .jp-enh-cell-all,
-.jp-CodeCell .jp-ToolbarButton .jp-enh-cell-code,
-.jp-MarkdownCell .jp-ToolbarButton .jp-enh-cell-markdown,
-.jp-RawCell .jp-ToolbarButton .jp-enh-cell-raw {
+.jp-mod-active .jp-enh-cell-toolbar .jp-ToolbarButton,
+.jp-mod-active .jp-enh-cell-toolbar .jp-CommandToolbarButton,
+.jp-mod-active .jp-enh-cell-toolbar .jp-Toolbar-spacer {
   display: block;
 }
 
-.jp-enh-cell-toolbar .jp-Toolbar-spacer {
-  flex: 1 1 auto;
+.jp-enh-cell-toolbar button.jp-ToolbarButtonComponent {
+  height: 16px;
 }
 
 .jp-enh-cell-tags {

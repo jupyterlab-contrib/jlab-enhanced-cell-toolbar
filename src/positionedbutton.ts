@@ -88,13 +88,11 @@ namespace Private {
     if (item.className) {
       button.classList.add(item.className);
     }
-    button.appendChild(
-      LabIcon.resolve({ icon: item.icon }).element({
-        elementPosition: 'center',
-        elementSize: 'normal',
-        tag: 'span'
-      })
-    );
+    LabIcon.resolve({ icon: item.icon }).element({
+      container: button,
+      elementPosition: 'center',
+      elementSize: 'normal'
+    });
     return button;
   }
 }

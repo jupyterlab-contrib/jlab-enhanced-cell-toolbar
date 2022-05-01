@@ -2,6 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema",
   "title": "Cell Toolbar",
   "description": "Cell Toolbar Settings.",
+  "jupyter.lab.transform": true,
   "properties": {
     "defaultTags": {
       "title": "List of Default Tags",
@@ -54,9 +55,9 @@
         }
       ]
     },
-    "leftMenu": {
-      "title": "List of left menu items",
-      "description": "An item is defined by a 'command' name and an 'icon' name + optionally a 'tooltip' and the 'cellType' on which it applies",
+    "toolbar": {
+      "title": "List of toolbar items",
+      "description": "An item is defined by a unique `name`. If its `type` is `command` (default), the `command` id is required; and optionally a `icon`, a `label` and the `cellType` on which it applies. You can disabled an default item by setting `disabled` to `true`.",
       "oneOf": [
         {
           "type": "null"
@@ -64,30 +65,31 @@
         {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/menuItem"
+            "$ref": "#/definitions/toolbarItem"
           }
         }
       ],
       "default": [
         {
+          "name": "markdown-to-code",
           "cellType": "markdown",
           "command": "notebook:change-cell-to-code",
           "icon": "@jlab-enhanced/cell-toolbar:code"
         },
         {
+          "name": "code-to-markdown",
           "cellType": "code",
           "command": "notebook:change-cell-to-markdown",
           "icon": "ui-components:markdown"
         },
         {
-          "cellType": "code",
-          "command": "jupyterlab_code_formatter:format",
-          "icon": "@jlab-enhanced/cell-toolbar:format",
-          "tooltip": "Format Cell"
-        },
-        {
+          "name": "delete-cell",
           "command": "notebook:delete-cell",
           "icon": "@jlab-enhanced/cell-toolbar:delete"
+        },
+        {
+          "name": "spacer",
+          "type": "spacer"
         }
       ]
     },
@@ -97,57 +99,62 @@
       "type": "number",
       "minimum": 0,
       "default": 0
-    },
-    "rightMenu": {
-      "title": "List of left menu items",
-      "description": "An item is defined by a 'command' name and an 'icon' name + optionally a 'tooltip' and the 'cellType' on which it applies",
-      "oneOf": [
-        {
-          "type": "null"
-        },
-        {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/menuItem"
-          }
-        }
-      ],
-      "default": null
-    },
-    "showTags": {
-      "title": "Tags editor visibility",
-      "description": "Whether to show the tags editor widget (default) or not.",
-      "type": "boolean",
-      "default": true
     }
   },
   "additionalProperties": false,
   "type": "object",
   "definitions": {
-    "menuItem": {
-      "type": "object",
+    "toolbarItem": {
       "properties": {
-        "command": {
-          "title": "Command ID to be executed",
+        "name": {
+          "title": "Unique name",
           "type": "string"
         },
-        "icon": {
-          "title": "Item icon ID",
-          "type": "string"
-        },
-        "tooltip": {
-          "title": "Item tooltip",
-          "type": "string"
+        "args": {
+          "title": "Command arguments",
+          "type": "object"
         },
         "cellType": {
           "title": "Cell type on which to display the item",
           "description": "Left empty to define on all cells",
           "type": "string",
           "enum": ["code", "markdown", "raw"]
+        },
+        "command": {
+          "title": "Command id",
+          "type": "string",
+          "default": ""
+        },
+        "disabled": {
+          "title": "Whether the item is ignored or not",
+          "type": "boolean",
+          "default": false
+        },
+        "icon": {
+          "title": "Item icon id",
+          "description": "If defined, it will override the command icon",
+          "type": "string"
+        },
+        "label": {
+          "title": "Item label",
+          "description": "If defined, it will override the command label",
+          "type": "string"
+        },
+        "type": {
+          "title": "Item type",
+          "type": "string",
+          "enum": ["command", "spacer"]
+        },
+        "rank": {
+          "title": "Item rank",
+          "type": "number",
+          "minimum": 0,
+          "default": 50
         }
       },
+      "required": ["name"],
       "additionalProperties": false,
-      "required": ["command", "icon"]
+      "type": "object"
     },
     "position": {
       "properties": {

@@ -1,3 +1,4 @@
+import { ToolbarRegistry } from '@jupyterlab/apputils';
 import { Cell, ICellModel } from '@jupyterlab/cells';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { NotebookPanel } from '@jupyterlab/notebook';
@@ -11,52 +12,18 @@ import {
   addIcon,
   caretDownEmptyThinIcon,
   caretUpEmptyThinIcon,
-  LabIcon,
-  markdownIcon,
   runIcon
 } from '@jupyterlab/ui-components';
-import { each, find } from '@lumino/algorithm';
+import { each, findIndex, toArray } from '@lumino/algorithm';
 import { CommandRegistry } from '@lumino/commands';
+import { JSONExt } from '@lumino/coreutils';
 import { IDisposable } from '@lumino/disposable';
+import { ISignal, Signal } from '@lumino/signaling';
 import { PanelLayout, Widget } from '@lumino/widgets';
-import { CellToolbarWidget } from './celltoolbarwidget';
-import {
-  codeIcon,
-  deleteIcon,
-  formatIcon,
-  lockedTagsIcon,
-  unlockedTagsIcon
-} from './icon';
+import { CellToolbar } from './celltoolbarwidget';
 import { PositionedButton } from './positionedbutton';
 import { TagsModel } from './tagsmodel';
-import { ICellMenuItem } from './tokens';
-import { ToggleButton } from './toolbarbutton';
-
-const DEFAULT_LEFT_MENU: ICellMenuItem[] = [
-  // Originate from @jupyterlab/notebook-extension
-  {
-    cellType: 'markdown',
-    command: 'notebook:change-cell-to-code',
-    icon: codeIcon
-  },
-  {
-    cellType: 'code',
-    command: 'notebook:change-cell-to-markdown',
-    icon: markdownIcon
-  },
-  // Originate from @ryantam626/jupyterlab_code_formatter
-  {
-    cellType: 'code',
-    command: 'jupyterlab_code_formatter:format',
-    icon: formatIcon,
-    tooltip: 'Format Cell'
-  },
-  // Originate from @jupyterlab/notebook-extension
-  {
-    command: 'notebook:delete-cell',
-    icon: deleteIcon
-  }
-];
+import { CellTypeMapping, ICellMenuItem, ICellToolbarConfig } from './tokens';
 
 const DEFAULT_HELPER_BUTTONS: ICellMenuItem[] = [
   // Originate from @jupyterlab/notebook-extension
@@ -88,77 +55,108 @@ const CELL_BAR_CLASS = 'jp-enh-cell-bar';
  */
 export class CellToolbarTracker implements IDisposable {
   constructor(
-    panel: NotebookPanel,
-    commands: CommandRegistry,
-    settings: ISettingRegistry.ISettings | null
-  ) {
-    this._commands = commands;
-    this._panel = panel;
-    this._settings = settings;
-
-    // Add lock tag button
-    this._unlockTagsButton = new ToggleButton({
-      className: (): string => 'jp-enh-cell-nb-button',
-      enabled: (): boolean =>
-        (!this._panel?.context.model.readOnly &&
-          this._panel?.context.contentsModel?.writable) ??
-        false,
-      icon: (state: boolean): LabIcon =>
-        state ? lockedTagsIcon : unlockedTagsIcon,
-      tooltip: (state: boolean): string =>
-        state ? 'Lock tags' : 'Unlock tags',
-      onClick: (state: boolean): void => {
-        for (const id in this._tagsModels) {
-          this._tagsModels[id].unlockedTags = state;
-        }
-      }
-    });
-
-    let insertionPoint = -1;
-    find(panel.toolbar.children(), (tbb, index) => {
-      insertionPoint = index; // It will be the last index or the cell type input
-      return tbb.hasClass('jp-Notebook-toolbarCellType');
-    });
-    panel.toolbar.insertItem(
-      insertionPoint + 1,
-      'edit-tags',
-      this._unlockTagsButton
-    );
-
-    if (this._settings) {
-      this._onSettingsChanged();
-      this._settings.changed.connect(this._onSettingsChanged, this);
+    protected panel: NotebookPanel,
+    protected commands: CommandRegistry,
+    protected cellToolbarFactory: (
+      c: Cell
+    ) =>
+      | IObservableList<ToolbarRegistry.IToolbarItem>
+      | ToolbarRegistry.IToolbarItem[],
+    configuration: ICellToolbarConfig = {
+      defaultTags: [],
+      floatPosition: null,
+      helperButtons: [
+        'insert-cell-below',
+        'move-cell-down',
+        'move-cell-up',
+        'run-cell-and-select-next'
+      ],
+      leftSpace: 0,
+      cellType: {}
     }
+  ) {
+    this._disposed = new Signal<CellToolbarTracker, void>(this);
+    this._config = JSONExt.deepCopy(configuration as any);
+    // // Add lock tag button
+    // this._unlockTagsButton = new ToggleButton({
+    //   className: (): string => 'jp-enh-cell-nb-button',
+    //   enabled: (): boolean =>
+    //     (!this.panel?.context.model.readOnly &&
+    //       this.panel?.context.contentsModel?.writable) ??
+    //     false,
+    //   icon: (state: boolean): LabIcon =>
+    //     state ? lockedTagsIcon : unlockedTagsIcon,
+    //   tooltip: (state: boolean): string =>
+    //     state ? 'Lock tags' : 'Unlock tags',
+    //   onClick: (state: boolean): void => {
+    //     for (const id in this._tagsModels) {
+    //       this._tagsModels[id].unlockedTags = state;
+    //     }
+    //   }
+    // });
 
-    const cells = this._panel.context.model.cells;
+    // let insertionPoint = -1;
+    // find(panel.toolbar.children(), (tbb, index) => {
+    //   insertionPoint = index; // It will be the last index or the cell type input
+    //   return tbb.hasClass('jp-Notebook-toolbarCellType');
+    // });
+    // panel.toolbar.insertItem(
+    //   insertionPoint + 1,
+    //   'edit-tags',
+    //   this._unlockTagsButton
+    // );
+
+    const cells = this.panel.context.model.cells;
     cells.changed.connect(this.updateConnectedCells, this);
 
-    panel.context.fileChanged.connect(this._onFileChanged, this);
+    // panel.context.fileChanged.connect(this._onFileChanged, this);
   }
 
+  /**
+   * Cell toolbar configuration
+   */
+  get configuration(): ICellToolbarConfig {
+    return JSONExt.deepCopy(this._config as any);
+  }
+  set configuration(v: ICellToolbarConfig) {
+    if (!JSONExt.deepEqual(v as any, this._config as any)) {
+      this._config = { ...this._config, ...JSONExt.deepCopy(v as any) };
+      this._onConfigChanged();
+    }
+  }
+
+  /**
+   * A signal emitted when the poll is disposed.
+   */
+  get disposed(): ISignal<CellToolbarTracker, void> {
+    return this._disposed;
+  }
+
+  /**
+   * Test whether the context is disposed.
+   */
   get isDisposed(): boolean {
     return this._isDisposed;
   }
 
+  /**
+   * Dispose of the resources held by the object.
+   */
   dispose(): void {
     if (this.isDisposed) {
       return;
     }
     this._isDisposed = true;
 
-    if (this._settings) {
-      this._settings.changed.disconnect(this._onSettingsChanged, this);
-    }
-
-    const cells = this._panel?.context.model.cells;
+    const cells = this.panel?.context.model.cells;
     if (cells) {
       cells.changed.disconnect(this.updateConnectedCells, this);
       each(cells.iter(), model => this._removeToolbar(model));
     }
 
-    this._panel?.context.fileChanged.disconnect(this._onFileChanged);
-
-    this._panel = null;
+    // this.panel?.context.fileChanged.disconnect(this._onFileChanged);
+    this._disposed.emit();
+    Signal.clearData(this);
   }
 
   /**
@@ -179,57 +177,33 @@ export class CellToolbarTracker implements IDisposable {
     const cell = this._getCell(model);
 
     if (cell) {
-      const {
-        helperButtons,
-        leftMenu,
-        rightMenu,
-        leftSpace,
-        floatPosition,
-        showTags
-      } = (this._settings?.composite as any) ?? {};
+      const { helperButtons, leftSpace, floatPosition } = this._config;
 
-      const helperButtons_ =
-        helperButtons === null
-          ? []
-          : helperButtons ??
-            DEFAULT_HELPER_BUTTONS.map(entry => entry.command.split(':')[1]);
-      const leftMenu_ = leftMenu === null ? [] : leftMenu ?? DEFAULT_LEFT_MENU;
-      const rightMenu_ = rightMenu ?? [];
-      const leftSpace_ = leftSpace ?? 0;
-      const showTags_ = showTags ?? true;
+      // const tagsModel = (this._tagsModels[model.id] = new TagsModel(
+      //   model,
+      //   this._allTags
 
-      const tagsModel = showTags_
-        ? (this._tagsModels[model.id] = new TagsModel(
-            model,
-            this._allTags,
-            this._unlockTagsButton.toggled
-          ))
-        : null;
+      //   // this._unlockTagsButton.toggled
+      // ));
 
-      const toolbar = new CellToolbarWidget(
-        this._commands,
-        tagsModel,
-        leftMenu_,
-        rightMenu_,
-        leftSpace_,
-        floatPosition
-      );
+      const toolbar = new CellToolbar(leftSpace ?? 0, floatPosition);
+      this._setToolbar(cell, toolbar);
       toolbar.addClass(CELL_BAR_CLASS);
       (cell.layout as PanelLayout).insertWidget(0, toolbar);
 
       DEFAULT_HELPER_BUTTONS.filter(entry =>
-        (helperButtons_ as string[]).includes(entry.command.split(':')[1])
+        (helperButtons as string[]).includes(entry.command.split(':')[1])
       ).forEach(entry => {
-        if (this._commands.hasCommand(entry.command)) {
+        if (this.commands.hasCommand(entry.command)) {
           const { cellType, command, tooltip, ...others } = entry;
           const shortName = command.split(':')[1];
           const button = new PositionedButton({
             ...others,
             callback: (): void => {
-              this._commands.execute(command);
+              this.commands.execute(command);
             },
             className: shortName && `jp-enh-cell-${shortName}`,
-            tooltip: tooltip || this._commands.label(entry.command)
+            tooltip: tooltip || this.commands.label(entry.command)
           });
           button.addClass(CELL_BAR_CLASS);
           button.addClass(`jp-enh-cell-${cellType || 'all'}`);
@@ -240,7 +214,7 @@ export class CellToolbarTracker implements IDisposable {
   }
 
   private _getCell(model: ICellModel): Cell | undefined {
-    return this._panel?.content.widgets.find(widget => widget.model === model);
+    return this.panel?.content.widgets.find(widget => widget.model === model);
   }
 
   private _findToolbarWidgets(cell: Cell): Widget[] {
@@ -262,33 +236,121 @@ export class CellToolbarTracker implements IDisposable {
   }
 
   /**
-   * Callback on file changed
+   * Set the toolbar items of a cell
    */
-  private _onFileChanged(): void {
-    this._unlockTagsButton.update();
+  private _setToolbar(cell: Cell, toolbar: CellToolbar): void {
+    const cellType = cell.model.type;
+    const items = this.cellToolbarFactory(cell);
+
+    if (Array.isArray(items)) {
+      items.forEach(({ name, widget }) => {
+        const itemType = this.configuration.cellType[name];
+        if (itemType && itemType !== cellType) {
+          widget.hide();
+        }
+        toolbar.addItem(name, widget);
+      });
+    } else {
+      const updateToolbar = (
+        list: IObservableList<ToolbarRegistry.IToolbarItem>,
+        changes: IObservableList.IChangedArgs<ToolbarRegistry.IToolbarItem>
+      ): void => {
+        switch (changes.type) {
+          case 'add':
+            changes.newValues.forEach((item, index) => {
+              const itemType = this.configuration.cellType[item.name];
+              if (itemType && itemType !== cellType) {
+                item.widget.hide();
+              }
+              toolbar.insertItem(
+                changes.newIndex + index,
+                item.name,
+                item.widget
+              );
+            });
+            break;
+          case 'move':
+            changes.oldValues.forEach(item => {
+              item.widget.parent = null;
+            });
+            changes.newValues.forEach((item, index) => {
+              toolbar.insertItem(
+                changes.newIndex + index,
+                item.name,
+                item.widget
+              );
+            });
+            break;
+          case 'remove':
+            changes.oldValues.forEach(item => {
+              item.widget.parent = null;
+            });
+            break;
+          case 'set':
+            changes.oldValues.forEach(item => {
+              item.widget.parent = null;
+            });
+
+            changes.newValues.forEach((item, index) => {
+              const existingIndex = findIndex(
+                toolbar.names(),
+                name => item.name === name
+              );
+              if (existingIndex >= 0) {
+                toArray(toolbar.children())[existingIndex].parent = null;
+              }
+
+              const itemType = this.configuration.cellType[item.name];
+              if (itemType && itemType !== cellType) {
+                item.widget.hide();
+              }
+
+              toolbar.insertItem(
+                changes.newIndex + index,
+                item.name,
+                item.widget
+              );
+            });
+            break;
+        }
+      };
+
+      updateToolbar(items, {
+        newIndex: 0,
+        newValues: toArray(items),
+        oldIndex: 0,
+        oldValues: [],
+        type: 'add'
+      });
+
+      items.changed.connect(updateToolbar);
+      cell.disposed.connect(() => {
+        items.changed.disconnect(updateToolbar);
+      });
+    }
   }
 
   /**
-   * Call back on settings changes
+   * Callback on file changed
    */
-  private _onSettingsChanged(): void {
-    if (this._settings?.composite['showTags'] ?? true) {
-      this._unlockTagsButton.show();
-    } else {
-      this._unlockTagsButton.hide();
-    }
+  // private _onFileChanged(): void {
+  //   this._unlockTagsButton.update();
+  // }
 
+  /**
+   * Call back on configuration changes
+   */
+  private _onConfigChanged(): void {
     // Reset toolbar when settings changes
-    if (this._panel?.context.model.cells) {
-      each(this._panel?.context.model.cells.iter(), model => {
+    if (this.panel?.context.model.cells) {
+      each(this.panel?.context.model.cells.iter(), model => {
         this._removeToolbar(model);
         this._addToolbar(model);
       });
     }
 
     // Update tags
-    const newDefaultTags =
-      (this._settings?.composite['defaultTags'] as string[]) ?? [];
+    const newDefaultTags = this._config.defaultTags ?? [];
     // Update default tag in shared tag list
     const toAdd = newDefaultTags.filter(
       tag => !this._previousDefaultTags.includes(tag)
@@ -302,14 +364,13 @@ export class CellToolbarTracker implements IDisposable {
     this._previousDefaultTags = newDefaultTags;
   }
 
-  private _allTags: ObservableList<string> = new ObservableList<string>();
-  private _commands: CommandRegistry;
+  private _allTags = new ObservableList<string>();
+  private _disposed: Signal<CellToolbarTracker, void>;
   private _isDisposed = false;
   private _previousDefaultTags = new Array<string>();
-  private _panel: NotebookPanel | null;
-  private _settings: ISettingRegistry.ISettings | null;
   private _tagsModels: { [id: string]: TagsModel } = {};
-  private _unlockTagsButton: ToggleButton;
+  // private _unlockTagsButton: ToggleButton;
+  private _config: ICellToolbarConfig;
 }
 
 /**
@@ -318,17 +379,51 @@ export class CellToolbarTracker implements IDisposable {
  */
 export class CellBarExtension implements DocumentRegistry.WidgetExtension {
   constructor(
-    commands: CommandRegistry,
-    settings: ISettingRegistry.ISettings | null
-  ) {
-    this._commands = commands;
-    this._settings = settings;
-  }
+    protected commands: CommandRegistry,
+    protected cellToolbarFactory: (
+      c: Cell
+    ) =>
+      | IObservableList<ToolbarRegistry.IToolbarItem>
+      | ToolbarRegistry.IToolbarItem[],
+    protected settings: ISettingRegistry.ISettings | null
+  ) {}
 
   createNew(panel: NotebookPanel): IDisposable {
-    return new CellToolbarTracker(panel, this._commands, this._settings);
-  }
+    const toolbarTracker = new CellToolbarTracker(
+      panel,
+      this.commands,
+      this.cellToolbarFactory
+    );
 
-  private _commands: CommandRegistry;
-  private _settings: ISettingRegistry.ISettings | null;
+    if (this.settings) {
+      const onSettingsChanged = (
+        settings: ISettingRegistry.ISettings
+      ): void => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { toolbar, ...config } = settings.composite as {
+          toolbar: (ISettingRegistry.IToolbarItem & {
+            cellType?: 'code' | 'markdown' | 'raw';
+          })[];
+          config: any;
+        };
+
+        const cellType: CellTypeMapping = {};
+        toolbar.forEach(item => {
+          cellType[item.name] = item.cellType;
+        });
+
+        toolbarTracker.configuration = {
+          ...config,
+          cellType
+        } as any;
+      };
+      onSettingsChanged(this.settings);
+      toolbarTracker.disposed.connect(() => {
+        this.settings?.changed.disconnect(onSettingsChanged);
+      });
+      this.settings?.changed.connect(onSettingsChanged);
+    }
+
+    return toolbarTracker;
+  }
 }
