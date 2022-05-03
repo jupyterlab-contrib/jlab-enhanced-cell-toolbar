@@ -6,7 +6,8 @@ import { CellToolbar } from './tokens';
 /**
  * Constructor options for PositionedButton
  */
-export interface IPositionedButton extends Omit<CellToolbar.IButton, 'command'> {
+export interface IPositionedButton
+  extends Omit<CellToolbar.IButton, 'command'> {
   /**
    * Button callback
    */
