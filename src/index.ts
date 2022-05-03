@@ -56,7 +56,7 @@ namespace CommandIDs {
   export const toggleTags = `${EXTENSION_ID}:toggle-tags`;
 }
 
-// TODO commands, menus, get raw format from nbconvert, upgrade settings, find why default tags is [{}] instead of ["parameters",]
+// TODO upgrade settings, find why default tags is [{}] instead of ["parameters",]
 
 /**
  * JupyterLab enhanced cell toolbar plugin.
@@ -90,35 +90,102 @@ const extension: JupyterFrontEndPlugin<void> = {
       }
     );
 
-    toolbarRegistry.registerFactory(
-      FACTORY_NAME,
-      CellToolbar.ViewItems.RAW_FORMAT,
-      (cell: Widget) => {
-        if ((cell as Cell).model.type === 'raw') {
-          const w = new AttributeEditor({
-            metadata: (cell as Cell).model.metadata,
-            keys: ['raw_mimetype', 'format'],
-            label: trans.__('Raw NBConvert Format'),
-            values: [
-              ['text/latex', 'LaTeX'],
-              ['text/restructuredtext', 'ReStructured Text'],
-              ['text/html', 'HTML'],
-              ['text/markdown', 'Markdown'],
-              ['text/x-python', 'Python']
-            ],
-            editable: true,
-            placeholder: trans.__('Click or press 🠗 for suggestions.'),
-            noValue: ''
+    // Extract the list from nbconvert service as in @jupyterlab/notebook-extension
+    app.serviceManager.nbconvert
+      .getExportFormats()
+      .then(response => {
+        if (response) {
+          const coreTrans = (translator ?? nullTranslator).load('jupyterlab');
+          /**
+           * The excluded Cell Inspector Raw NbConvert Formats
+           * (returned from nbconvert's export list)
+           */
+          const rawFormatExclude = [
+            'pdf',
+            'slides',
+            'script',
+            'notebook',
+            'custom' // Exclude this as the input is editable
+          ];
+          const optionValueArray: [string, string][] = [
+            ['pdf', coreTrans.__('PDF')],
+            ['slides', coreTrans.__('Slides')],
+            ['script', coreTrans.__('Script')],
+            ['notebook', coreTrans.__('Notebook')]
+          ];
+
+          // convert exportList to palette and menu items
+          const formatList = Object.keys(response);
+          formatList.forEach(key => {
+            if (rawFormatExclude.indexOf(key) === -1) {
+              const altOption = coreTrans.__(
+                key[0].toUpperCase() + key.slice(1)
+              );
+              const coreLabel = coreTrans.__(key);
+              const option = coreLabel === key ? altOption : coreLabel;
+              const mimeTypeValue = response[key].output_mimetype;
+              optionValueArray.push([mimeTypeValue, option]);
+            }
           });
-          w.addClass('jp-enh-cell-raw-format');
-          return w;
+
+          toolbarRegistry.registerFactory(
+            FACTORY_NAME,
+            CellToolbar.ViewItems.RAW_FORMAT,
+            (cell: Widget) => {
+              if ((cell as Cell).model.type === 'raw') {
+                const w = new AttributeEditor({
+                  metadata: (cell as Cell).model.metadata,
+                  keys: ['raw_mimetype', 'format'],
+                  label: trans.__('Raw NBConvert Format'),
+                  values: optionValueArray,
+                  editable: true,
+                  placeholder: trans.__('Click or press 🠗 for suggestions.'),
+                  noValue: ''
+                });
+                w.addClass('jp-enh-cell-raw-format');
+                return w;
+              } else {
+                const widget = new Widget();
+                widget.hide();
+                return widget;
+              }
+            }
+          );
         } else {
-          const widget = new Widget();
-          widget.hide();
-          return widget;
+          throw new Error('Fallback to default raw format.');
         }
-      }
-    );
+      })
+      .catch(() => {
+        toolbarRegistry.registerFactory(
+          FACTORY_NAME,
+          CellToolbar.ViewItems.RAW_FORMAT,
+          (cell: Widget) => {
+            if ((cell as Cell).model.type === 'raw') {
+              const w = new AttributeEditor({
+                metadata: (cell as Cell).model.metadata,
+                keys: ['raw_mimetype', 'format'],
+                label: trans.__('Raw NBConvert Format'),
+                values: [
+                  ['text/latex', 'LaTeX'],
+                  ['text/restructuredtext', 'ReStructured Text'],
+                  ['text/html', 'HTML'],
+                  ['text/markdown', 'Markdown'],
+                  ['text/x-python', 'Python']
+                ],
+                editable: true,
+                placeholder: trans.__('Click or press 🠗 for suggestions.'),
+                noValue: ''
+              });
+              w.addClass('jp-enh-cell-raw-format');
+              return w;
+            } else {
+              const widget = new Widget();
+              widget.hide();
+              return widget;
+            }
+          }
+        );
+      });
 
     toolbarRegistry.registerFactory(
       FACTORY_NAME,
