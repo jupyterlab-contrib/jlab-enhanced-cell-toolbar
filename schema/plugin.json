@@ -109,17 +109,11 @@
     "toolbar": {
       "title": "List of toolbar items",
       "description": "An item is defined by a unique `name`. If its `type` is `command` (default), the `command` id is required; and optionally a `icon`, a `label` and the `cellType` on which it applies. You can disabled an default item by setting `disabled` to `true`.",
-      "oneOf": [
-        {
-          "type": "null"
-        },
-        {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/toolbarItem"
-          }
-        }
-      ],
+
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/toolbarItem"
+      },
       "default": [
         {
           "name": "markdown-to-code",
@@ -152,7 +146,7 @@
       "default": 0
     }
   },
-  "additionalProperties": false,
+  "additionalProperties": true,
   "type": "object",
   "definitions": {
     "toolbarItem": {

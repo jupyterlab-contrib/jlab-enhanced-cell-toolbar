@@ -56,8 +56,6 @@ namespace CommandIDs {
   export const toggleTags = `${EXTENSION_ID}:toggle-tags`;
 }
 
-// TODO upgrade settings, find why default tags is [{}] instead of ["parameters",]
-
 /**
  * JupyterLab enhanced cell toolbar plugin.
  */
@@ -272,7 +270,8 @@ const extension: JupyterFrontEndPlugin<void> = {
 
       settingRegistry
         .load(extension.id)
-        .then(settings => {
+        .then(async settings => {
+          await upgradeSettings(settings);
           notebookExtension = new CellBarExtension(
             app.commands,
             cellToolbarFactory,
@@ -450,6 +449,57 @@ const extension: JupyterFrontEndPlugin<void> = {
         return false;
       }
     });
+
+    /**
+     * Upgrade the settings from the old format of v3
+     * @param settings Extension settings
+     */
+    async function upgradeSettings(
+      settings: ISettingRegistry.ISettings
+    ): Promise<void> {
+      const iconsMapping: { [name: string]: string } = {
+        '@jlab-enhanced/cell-toolbar:code': 'ui-components:code',
+        '@jlab-enhanced/cell-toolbar:delete': 'ui-components:delete'
+      };
+      const current = settings.composite as any;
+      let wasUpgraded = false;
+      const toolbarDefinition: ISettingRegistry.IToolbarItem[] = [];
+      if (current['leftMenu']) {
+        wasUpgraded = true;
+        (current['leftMenu'] as CellToolbar.IButton[]).forEach(item => {
+          if (app.commands.hasCommand(item.command)) {
+            toolbarDefinition.push({
+              name: [item.command.split(':')[1], item.cellType].join('-'),
+              command: item.command,
+              icon: iconsMapping[item.icon as string] ?? item.icon
+            });
+          }
+        });
+        await settings.remove('leftMenu');
+      }
+      toolbarDefinition.push({ name: 'spacer', type: 'spacer' });
+      if (current['showTags']) {
+        wasUpgraded = true;
+        toolbarDefinition.push({ name: CellToolbar.ViewItems.TAGS });
+        await settings.remove('showTags');
+      }
+      if (current['rightMenu']) {
+        wasUpgraded = true;
+        (current['rightMenu'] as CellToolbar.IButton[]).forEach(item => {
+          if (app.commands.hasCommand(item.command)) {
+            toolbarDefinition.push({
+              name: [item.command.split(':')[1], item.cellType].join('-'),
+              command: item.command,
+              icon: iconsMapping[item.icon as string] ?? item.icon
+            });
+          }
+        });
+        await settings.remove('rightMenu');
+      }
+      if (wasUpgraded) {
+        await settings.set('toolbar', toolbarDefinition);
+      }
+    }
   }
 };
 
