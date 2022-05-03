@@ -1,5 +1,5 @@
 /* Patch default to reduce vertical blank space */
-.jp-Notebook .jp-Cell {
+.jp-Notebook[data-jp-enh-cell-toolbar='true'] .jp-Cell {
   padding: 21px var(--jp-cell-padding) 2px var(--jp-cell-padding);
 }
 
@@ -66,6 +66,9 @@
   min-height: 22px;
   height: 22px;
   z-index: 6;
+
+  color: var(--jp-ui-font-color1);
+  font-size: 12px; /*calc(var(--jp-ui-font-size1) / var(--jp-ui-font-scale-factor));*/
 }
 
 .jp-enh-cell-toolbar.jp-overlap {
@@ -75,20 +78,44 @@
   border-radius: var(--jp-border-radius);
 }
 
-.jp-enh-cell-toolbar .jp-ToolbarButton,
-.jp-enh-cell-toolbar .jp-CommandToolbarButton,
 .jp-enh-cell-toolbar .jp-Toolbar-spacer {
+  display: flex;
+  flex: 1 1 auto;
+}
+
+.jp-enh-cell-toolbar .jp-ToolbarButton,
+.jp-enh-cell-toolbar .jp-CommandToolbarButton {
   display: none;
 }
 
 .jp-mod-active .jp-enh-cell-toolbar .jp-ToolbarButton,
-.jp-mod-active .jp-enh-cell-toolbar .jp-CommandToolbarButton,
-.jp-mod-active .jp-enh-cell-toolbar .jp-Toolbar-spacer {
+.jp-mod-active .jp-enh-cell-toolbar .jp-CommandToolbarButton {
   display: block;
 }
 
 .jp-enh-cell-toolbar button.jp-ToolbarButtonComponent {
   height: 16px;
+}
+
+.jp-enh-cell-toolbar .jp-enh-attribute-editor {
+  margin: 0 2px;
+  white-space: nowrap;
+}
+
+.jp-enh-cell-toolbar .jp-enh-attribute-editor select,
+.jp-enh-cell-toolbar .jp-enh-attribute-editor input {
+  border: solid 1px var(--jp-border-color0);
+  padding: 0;
+  background-color: transparent;
+
+  font-size: 12px;
+  font-family: var(--jp-ui-font-family);
+  color: var(--jp-ui-font-color1);
+}
+
+.jp-enh-cell-toolbar .jp-enh-attribute-editor input::placeholder {
+  color: var(--jp-ui-font-color3);
+  opacity: 1;
 }
 
 .jp-enh-cell-tags {
@@ -98,7 +125,7 @@
 }
 
 .jp-enh-cell-tags .tag {
-  font-size: 0.85em;
+  font-size: 12px;
   height: 18px;
   margin: 0px 2px;
   padding: 0px 2px;
@@ -112,7 +139,8 @@
 }
 
 .jp-enh-cell-tags .tag input.add-tag {
-  font-size: 1em;
+  font-size: 12px;
+  font-family: var(--jp-ui-font-family);
 }
 
 .jp-mod-active .jp-enh-cell-tags .tag.unapplied-tag {
@@ -127,4 +155,31 @@
 .jp-enh-cell-tags .add-tag {
   /* Needed to ensure correct display on selected cells */
   background-color: unset;
+}
+
+.jp-cell-enh-attachment-editor caption {
+  text-align: left;
+}
+
+.jp-cell-enh-attachment-editor tr > td:nth-child(2) {
+  color: var(--jp-ui-font-color2);
+}
+
+.jp-cell-enh-attachment-editor button {
+  border: none;
+  height: auto;
+  padding: 1px 4px;
+  line-height: inherit;
+}
+
+.jp-Dialog-body.jp-cell-enh-attachment-editor caption {
+  display: none;
+}
+
+.jp-cell-enh-metadata-editor {
+  width: 400px;
+}
+
+.jp-cell-enh-metadata-editor .jp-JSONEditor-header {
+  height: 22px;
 }

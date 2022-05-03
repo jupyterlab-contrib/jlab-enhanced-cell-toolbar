@@ -1,7 +1,5 @@
 import { AddWidget, TagWidget } from '@jupyterlab/celltags';
-import { IObservableJSON, IObservableMap } from '@jupyterlab/observables';
 import { toArray } from '@lumino/algorithm';
-import { ReadonlyPartialJSONValue } from '@lumino/coreutils';
 import { PanelLayout, Widget } from '@lumino/widgets';
 import { TagsModel } from './tagsmodel';
 
@@ -22,17 +20,12 @@ export class TagTool extends Widget {
     this.addClass(CELL_TAGS_CLASS);
     this._createTagInput();
 
+    this.onTagsModelChanged();
     this._model.stateChanged.connect(this.onTagsModelChanged, this);
+  }
 
-    // Update tag list
-    const tags: string[] =
-      (model.cellModel.metadata.get('tags') as string[]) || [];
-    if (tags.length > 0) {
-      model.tags.pushAll(tags); // We don't care about duplicate here so we can remove all occurrences at will
-    } else {
-      this.refreshTags(); // Force displaying default tags if no tags specified
-    }
-    model.cellModel.metadata.changed.connect(this.onCellMetadataChanged, this);
+  get model(): TagsModel {
+    return this._model;
   }
 
   dispose(): void {
@@ -40,13 +33,12 @@ export class TagTool extends Widget {
       return;
     }
 
-    this._model.cellModel.metadata.changed.disconnect(
-      this.onCellMetadataChanged,
-      this
-    );
     this._model.stateChanged.disconnect(this.onTagsModelChanged, this);
     super.dispose();
   }
+
+  // addTag, checkApplied and removeTag are needed because the core widget
+  // call those methods on their parent widget :-/
 
   /**
    * Check whether a tag is applied to the current active cell
@@ -56,9 +48,7 @@ export class TagTool extends Widget {
    * @returns A boolean representing whether it is applied.
    */
   checkApplied(name: string): boolean {
-    const tags = (this._model.cellModel.metadata.get('tags') as string[]) || [];
-
-    return tags.some(tag => tag === name);
+    return this._model.checkApplied(name);
   }
 
   /**
@@ -71,12 +61,7 @@ export class TagTool extends Widget {
       // Style toggling is applied on the widget directly => force rerendering
       this._refreshOneTag(name);
     }
-    const tags = (this._model.cellModel.metadata.get('tags') as string[]) || [];
-    const newTags = name
-      .split(/[,\s]+/)
-      .filter(tag => tag !== '' && !tags.includes(tag));
-    // Update the cell metadata => tagList will be updated in metadata listener
-    this._model.cellModel.metadata.set('tags', [...tags, ...newTags]);
+    this._model.addTag(name);
   }
 
   /**
@@ -90,21 +75,7 @@ export class TagTool extends Widget {
       this._refreshOneTag(name);
       return;
     }
-    // Need to copy as we splice a mutable otherwise
-    const tags = [
-      ...((this._model.cellModel.metadata.get('tags') as string[]) || [])
-    ];
-    const idx = tags.indexOf(name);
-    if (idx > -1) {
-      tags.splice(idx, 1);
-    }
-
-    // Update the cell metadata => tagList will be update in metadata listener
-    if (tags.length === 0) {
-      this._model.cellModel.metadata.delete('tags');
-    } else {
-      this._model.cellModel.metadata.set('tags', tags);
-    }
+    this._model.removeTag(name);
   }
 
   /**
@@ -160,7 +131,7 @@ export class TagTool extends Widget {
       } else {
         if (
           widget.id === 'add-tag' ||
-          !this.checkApplied((widget as TagWidget).name)
+          !this._model.checkApplied((widget as TagWidget).name)
         ) {
           widget.hide();
         } else {
@@ -195,56 +166,7 @@ export class TagTool extends Widget {
   }
 
   /**
-   * Validate the 'tags' of cell metadata, ensuring it is a list of strings and
-   * that each string doesn't include spaces.
-   *
-   * @param tagList Tags array to be validated
-   * @returns Validated tags array
-   */
-  protected _validateTags(tagList: string[]): string[] {
-    const results = new Set<string>();
-
-    tagList
-      .filter(tag => typeof tag === 'string' && tag !== '')
-      .forEach(tag => {
-        tag.split(/[,\s]+/).forEach(subTag => {
-          if (subTag !== '') {
-            results.add(subTag);
-          }
-        });
-      });
-
-    return [...results];
-  }
-
-  /**
-   * Propagate the cell metadata changes to the shared tag list.
-   *
-   * @param metadata Cell metadata
-   * @param changes Metadata changes
-   */
-  protected onCellMetadataChanged(
-    metadata: IObservableJSON,
-    changes: IObservableMap.IChangedArgs<ReadonlyPartialJSONValue | undefined>
-  ): void {
-    if (changes.key === 'tags') {
-      const oldTags = [...new Set((changes.oldValue as string[]) || [])];
-      const newTags = this._validateTags((changes.newValue as string[]) || []);
-
-      oldTags.forEach(tag => {
-        if (!newTags.includes(tag)) {
-          this._model.tags.removeValue(tag);
-        }
-      });
-      this._model.tags.pushAll(newTags.filter(tag => !oldTags.includes(tag)));
-    }
-  }
-
-  /**
    * Listener on shared tag list changes
-   *
-   * @param list Shared tag list
-   * @param changes Tag list changes
    */
   protected onTagsModelChanged(): void {
     this.refreshTags();

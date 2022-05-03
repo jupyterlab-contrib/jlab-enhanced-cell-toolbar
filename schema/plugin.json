@@ -2,6 +2,57 @@
   "$schema": "http://json-schema.org/draft-07/schema",
   "title": "Cell Toolbar",
   "description": "Cell Toolbar Settings.",
+  "jupyter.lab.menus": {
+    "main": [
+      {
+        "id": "jp-mainmenu-view",
+        "items": [
+          {
+            "type": "separator",
+            "rank": 11.5
+          },
+          {
+            "type": "submenu",
+            "rank": 11.5,
+            "submenu": {
+              "id": "jp-mainmenu-view-cell-toolbar-enh",
+              "label": "Cell Toolbar",
+              "items": [
+                {
+                  "command": "@jlab-enhanced/cell-toolbar:toggle-toolbar",
+                  "rank": 0
+                },
+                {
+                  "command": "@jlab-enhanced/cell-toolbar:toggle-metadata",
+                  "rank": 1
+                },
+                {
+                  "command": "@jlab-enhanced/cell-toolbar:toggle-raw-format",
+                  "rank": 2
+                },
+                {
+                  "command": "@jlab-enhanced/cell-toolbar:toggle-slide-type",
+                  "rank": 3
+                },
+                {
+                  "command": "@jlab-enhanced/cell-toolbar:toggle-attachments",
+                  "rank": 4
+                },
+                {
+                  "command": "@jlab-enhanced/cell-toolbar:toggle-tags",
+                  "rank": 5
+                }
+              ]
+            }
+          },
+          {
+            "type": "separator",
+            "rank": 11.5
+          }
+        ]
+      }
+    ]
+  },
   "jupyter.lab.transform": true,
   "properties": {
     "defaultTags": {
@@ -74,7 +125,7 @@
           "name": "markdown-to-code",
           "cellType": "markdown",
           "command": "notebook:change-cell-to-code",
-          "icon": "@jlab-enhanced/cell-toolbar:code"
+          "icon": "ui-components:code"
         },
         {
           "name": "code-to-markdown",
@@ -85,7 +136,7 @@
         {
           "name": "delete-cell",
           "command": "notebook:delete-cell",
-          "icon": "@jlab-enhanced/cell-toolbar:delete"
+          "icon": "ui-components:delete"
         },
         {
           "name": "spacer",

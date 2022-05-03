@@ -46,9 +46,11 @@
   },
   "dependencies": {
     "@jupyterlab/application": "^3.4.0-rc.0",
+    "@jupyterlab/attachments": "^3.4.0-rc.0",
     "@jupyterlab/apputils": "^3.4.0-rc.0",
     "@jupyterlab/cells": "^3.4.0-rc.0",
     "@jupyterlab/celltags": "^3.4.0-rc.0",
+    "@jupyterlab/codeeditor": "^3.4.0-rc.0",
     "@jupyterlab/docregistry": "^3.4.0-rc.0",
     "@jupyterlab/notebook": "^3.4.0-rc.0",
     "@jupyterlab/observables": "^4.4.0-rc.0",

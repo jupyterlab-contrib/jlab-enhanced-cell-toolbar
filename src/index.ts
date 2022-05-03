@@ -4,72 +4,196 @@ import {
 } from '@jupyterlab/application';
 import {
   createToolbarFactory,
+  Dialog,
   IToolbarWidgetRegistry,
+  showDialog,
+  ToolbarButton,
   ToolbarRegistry
 } from '@jupyterlab/apputils';
-import { Cell } from '@jupyterlab/cells';
+import { Cell, IAttachmentsCellModel } from '@jupyterlab/cells';
+import { IEditorServices } from '@jupyterlab/codeeditor';
+import { INotebookTools, INotebookTracker } from '@jupyterlab/notebook';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import { Widget } from '@lumino/widgets';
-import { CellBarExtension } from './celltoolbartracker';
-import { EXTENSION_ID, FACTORY_NAME } from './tokens';
+import { AttachmentsEditor, AttachmentsTool } from './attachmentseditor';
+import { AttributeEditor } from './attributeeditor';
+import { CellBarExtension, DEFAULT_TOOLBAR } from './celltoolbartracker';
+import { CellMetadataEditor } from './metadataeditor';
+import { TagTool } from './tagbar';
+import { TagsModel } from './tagsmodel';
+import { CellToolbar, EXTENSION_ID, FACTORY_NAME } from './tokens';
 
 /**
  * Export the icons so they got loaded
  */
-export { codeIcon, deleteIcon, formatIcon } from './icon';
+export { formatIcon } from './icon';
 
-const defaultToolbar: ISettingRegistry.IToolbarItem[] = [
-  {
-    name: 'markdown-to-code',
-    cellType: 'markdown',
-    command: 'notebook:change-cell-to-code',
-    icon: '@jlab-enhanced/cell-toolbar:code'
-  },
-  {
-    name: 'code-to-markdown',
-    cellType: 'code',
-    command: 'notebook:change-cell-to-markdown',
-    icon: 'ui-components:markdown'
-  },
-  // Not available by default
-  // {
-  //   name: 'format-code',
-  //   cellType: 'code',
-  //   command: 'jupyterlab_code_formatter:format',
-  //   icon: '@jlab-enhanced/cell-toolbar:format',
-  //   tooltip: 'Format Cell'
-  // },
-  {
-    name: 'delete-cell',
-    command: 'notebook:delete-cell',
-    icon: '@jlab-enhanced/cell-toolbar:delete'
-  },
-  {
-    name: 'spacer',
-    type: 'spacer'
-  }
-];
+namespace CommandIDs {
+  /**
+   * Toggle cell attachments editor
+   */
+  export const toggleAttachments = `${EXTENSION_ID}:toggle-attachments`;
+  /**
+   * Toggle cell metadata editor
+   */
+  export const toggleMetadata = `${EXTENSION_ID}:toggle-metadata`;
+  /**
+   * Toggle cell toolbar
+   */
+  export const toggleToolbar = `${EXTENSION_ID}:toggle-toolbar`;
+  /**
+   * Toggle cell Raw NBConvert format
+   */
+  export const toggleRawFormat = `${EXTENSION_ID}:toggle-raw-format`;
+  /**
+   * Toggle cell slide type
+   */
+  export const toggleSlideType = `${EXTENSION_ID}:toggle-slide-type`;
+  /**
+   * Toggle cell tags
+   */
+  export const toggleTags = `${EXTENSION_ID}:toggle-tags`;
+}
+
+// TODO commands, menus, get raw format from nbconvert, upgrade settings, find why default tags is [{}] instead of ["parameters",]
 
 /**
- * Initialization data for the jlab-enhanced-cell-toolbar extension.
+ * JupyterLab enhanced cell toolbar plugin.
  */
 const extension: JupyterFrontEndPlugin<void> = {
   id: `${EXTENSION_ID}:plugin`,
   autoStart: true,
+  optional: [ISettingRegistry, ITranslator, IEditorServices],
+  requires: [INotebookTracker, IToolbarWidgetRegistry],
   activate: async (
     app: JupyterFrontEnd,
+    notebookTracker: INotebookTracker,
     toolbarRegistry: IToolbarWidgetRegistry,
     settingRegistry: ISettingRegistry | null,
-    translator: ITranslator | null
+    translator: ITranslator | null,
+    editorServices: IEditorServices | null
   ) => {
+    const trans = (translator ?? nullTranslator).load('cell-toolbar');
+
     // Register specific toolbar items
     toolbarRegistry.registerFactory(
       FACTORY_NAME,
-      'tags-editor',
-      (w: Widget) => new Widget()
+      CellToolbar.ViewItems.TAGS,
+      (cell: Widget) => {
+        const model = new TagsModel((cell as Cell).model);
+        const widget = new TagTool(model);
+        widget.disposed.connect(() => {
+          model.dispose();
+        });
+        return widget;
+      }
     );
 
+    toolbarRegistry.registerFactory(
+      FACTORY_NAME,
+      CellToolbar.ViewItems.RAW_FORMAT,
+      (cell: Widget) => {
+        if ((cell as Cell).model.type === 'raw') {
+          const w = new AttributeEditor({
+            metadata: (cell as Cell).model.metadata,
+            keys: ['raw_mimetype', 'format'],
+            label: trans.__('Raw NBConvert Format'),
+            values: [
+              ['text/latex', 'LaTeX'],
+              ['text/restructuredtext', 'ReStructured Text'],
+              ['text/html', 'HTML'],
+              ['text/markdown', 'Markdown'],
+              ['text/x-python', 'Python']
+            ],
+            editable: true,
+            placeholder: trans.__('Click or press 🠗 for suggestions.'),
+            noValue: ''
+          });
+          w.addClass('jp-enh-cell-raw-format');
+          return w;
+        } else {
+          const widget = new Widget();
+          widget.hide();
+          return widget;
+        }
+      }
+    );
+
+    toolbarRegistry.registerFactory(
+      FACTORY_NAME,
+      CellToolbar.ViewItems.SLIDESHOW,
+      (cell: Widget) => {
+        const w = new AttributeEditor({
+          metadata: (cell as Cell).model.metadata,
+          keys: ['slideshow/slide_type'],
+          label: trans.__('Slide Type'),
+          values: [
+            ['slide', trans.__('Slide')],
+            ['subslide', trans.__('Sub-Slide')],
+            ['fragment', trans.__('Fragment')],
+            ['skip', trans.__('Skip')],
+            ['notes', trans.__('Notes')]
+          ],
+          noValue: '-'
+        });
+        w.addClass('jp-enh-cell-slide-type');
+        return w;
+      }
+    );
+
+    toolbarRegistry.registerFactory(
+      FACTORY_NAME,
+      CellToolbar.ViewItems.ATTACHMENTS,
+      (cell: Widget) => {
+        if (['markdown', 'raw'].includes((cell as Cell).model?.type)) {
+          return new ToolbarButton({
+            label: trans.__('Edit Attachments…'),
+            actualOnClick: true,
+            onClick: async (): Promise<void> => {
+              await showDialog({
+                title: trans.__('Edit Cell Attachments'),
+                body: new AttachmentsEditor(
+                  ((cell as Cell).model as IAttachmentsCellModel).attachments,
+                  translator ?? nullTranslator
+                ),
+                buttons: [Dialog.okButton({ label: trans.__('Close') })]
+              });
+            }
+          });
+        } else {
+          return new Widget();
+        }
+      }
+    );
+
+    if (editorServices) {
+      toolbarRegistry.registerFactory(
+        FACTORY_NAME,
+        CellToolbar.ViewItems.METADATA,
+        (cell: Widget) =>
+          new ToolbarButton({
+            label: trans.__('Edit Metadata…'),
+            actualOnClick: true,
+            onClick: async (): Promise<void> => {
+              const body = new CellMetadataEditor(
+                (cell as Cell).model.metadata,
+                editorServices.factoryService.newInlineEditor,
+                translator ?? nullTranslator
+              );
+              body.addClass('jp-cell-enh-metadata-editor');
+              await showDialog({
+                title: trans.__('Edit Cell Metadata'),
+                body,
+                buttons: [Dialog.okButton({ label: trans.__('Close') })]
+              });
+            }
+          })
+      );
+    }
+
+    // Add the widget extension
+    let notebookExtension: CellBarExtension;
     if (settingRegistry) {
       const cellToolbarFactory = createToolbarFactory(
         toolbarRegistry,
@@ -82,35 +206,204 @@ const extension: JupyterFrontEndPlugin<void> = {
       settingRegistry
         .load(extension.id)
         .then(settings => {
-          app.docRegistry.addWidgetExtension(
-            'Notebook',
-            new CellBarExtension(app.commands, cellToolbarFactory, settings)
+          notebookExtension = new CellBarExtension(
+            app.commands,
+            cellToolbarFactory,
+            toolbarRegistry,
+            settings
           );
+          app.docRegistry.addWidgetExtension('Notebook', notebookExtension);
         })
         .catch(reason => {
           console.error(`Failed to load settings for ${extension.id}.`, reason);
         });
     } else {
-      app.docRegistry.addWidgetExtension(
-        'Notebook',
-        new CellBarExtension(
-          app.commands,
-          (c: Cell): ToolbarRegistry.IToolbarItem[] =>
-            defaultToolbar
-              .filter(item => !item.cellType || item.cellType === c.model.type)
-              .map(item => {
-                return {
-                  name: item.name,
-                  widget: toolbarRegistry.createWidget(FACTORY_NAME, c, item)
-                };
-              }),
-          null
-        )
+      notebookExtension = new CellBarExtension(
+        app.commands,
+        (c: Cell): ToolbarRegistry.IToolbarItem[] =>
+          DEFAULT_TOOLBAR.filter(
+            item => !item.cellType || item.cellType === c.model.type
+          ).map(item => {
+            return {
+              name: item.name,
+              widget: toolbarRegistry.createWidget(FACTORY_NAME, c, item)
+            };
+          }),
+        toolbarRegistry,
+        null
       );
+      app.docRegistry.addWidgetExtension('Notebook', notebookExtension);
     }
-  },
-  optional: [ISettingRegistry, ITranslator],
-  requires: [IToolbarWidgetRegistry]
+
+    // Add commands
+    app.commands.addCommand(CommandIDs.toggleAttachments, {
+      label: trans.__('Show Attachments'),
+      execute: () => {
+        const nb = notebookTracker.currentWidget;
+        if (nb && notebookExtension) {
+          const handler = notebookExtension.getToolbarsHandler(nb);
+          if (handler) {
+            handler.setViewState(
+              CellToolbar.ViewItems.ATTACHMENTS,
+              !handler.getViewState(CellToolbar.ViewItems.ATTACHMENTS)
+            );
+          }
+        }
+      },
+      isToggled: () => {
+        const nb = notebookTracker.currentWidget;
+        if (nb && notebookExtension) {
+          const handler = notebookExtension.getToolbarsHandler(nb);
+          if (handler) {
+            return handler.getViewState(CellToolbar.ViewItems.ATTACHMENTS);
+          }
+        }
+        return false;
+      }
+    });
+    app.commands.addCommand(CommandIDs.toggleMetadata, {
+      label: trans.__('Show Metadata'),
+      execute: () => {
+        const nb = notebookTracker.currentWidget;
+        if (nb && notebookExtension) {
+          const handler = notebookExtension.getToolbarsHandler(nb);
+          if (handler) {
+            handler.setViewState(
+              CellToolbar.ViewItems.METADATA,
+              !handler.getViewState(CellToolbar.ViewItems.METADATA)
+            );
+          }
+        }
+      },
+      isToggled: () => {
+        const nb = notebookTracker.currentWidget;
+        if (nb && notebookExtension) {
+          const handler = notebookExtension.getToolbarsHandler(nb);
+          if (handler) {
+            return handler.getViewState(CellToolbar.ViewItems.METADATA);
+          }
+        }
+        return false;
+      }
+    });
+    app.commands.addCommand(CommandIDs.toggleRawFormat, {
+      label: trans.__('Show Raw Cell Format'),
+      execute: () => {
+        const nb = notebookTracker.currentWidget;
+        if (nb && notebookExtension) {
+          const handler = notebookExtension.getToolbarsHandler(nb);
+          if (handler) {
+            handler.setViewState(
+              CellToolbar.ViewItems.RAW_FORMAT,
+              !handler.getViewState(CellToolbar.ViewItems.RAW_FORMAT)
+            );
+          }
+        }
+      },
+      isToggled: () => {
+        const nb = notebookTracker.currentWidget;
+        if (nb && notebookExtension) {
+          const handler = notebookExtension.getToolbarsHandler(nb);
+          if (handler) {
+            return handler.getViewState(CellToolbar.ViewItems.RAW_FORMAT);
+          }
+        }
+        return false;
+      }
+    });
+    app.commands.addCommand(CommandIDs.toggleSlideType, {
+      label: trans.__('Show Slideshow'),
+      execute: () => {
+        const nb = notebookTracker.currentWidget;
+        if (nb && notebookExtension) {
+          const handler = notebookExtension.getToolbarsHandler(nb);
+          if (handler) {
+            handler.setViewState(
+              CellToolbar.ViewItems.SLIDESHOW,
+              !handler.getViewState(CellToolbar.ViewItems.SLIDESHOW)
+            );
+          }
+        }
+      },
+      isToggled: () => {
+        const nb = notebookTracker.currentWidget;
+        if (nb && notebookExtension) {
+          const handler = notebookExtension.getToolbarsHandler(nb);
+          if (handler) {
+            return handler.getViewState(CellToolbar.ViewItems.SLIDESHOW);
+          }
+        }
+        return false;
+      }
+    });
+    app.commands.addCommand(CommandIDs.toggleTags, {
+      label: trans.__('Show Tags'),
+      execute: () => {
+        const nb = notebookTracker.currentWidget;
+        if (nb && notebookExtension) {
+          const handler = notebookExtension.getToolbarsHandler(nb);
+          if (handler) {
+            handler.setViewState(
+              CellToolbar.ViewItems.TAGS,
+              !handler.getViewState(CellToolbar.ViewItems.TAGS)
+            );
+          }
+        }
+      },
+      isToggled: () => {
+        const nb = notebookTracker.currentWidget;
+        if (nb && notebookExtension) {
+          const handler = notebookExtension.getToolbarsHandler(nb);
+          if (handler) {
+            return handler.getViewState(CellToolbar.ViewItems.TAGS);
+          }
+        }
+        return false;
+      }
+    });
+    app.commands.addCommand(CommandIDs.toggleToolbar, {
+      label: trans.__('Show Toolbar'),
+      execute: () => {
+        const nb = notebookTracker.currentWidget;
+        if (nb && notebookExtension) {
+          const handler = notebookExtension.getToolbarsHandler(nb);
+          if (handler) {
+            handler.isActive = !handler.isActive;
+          }
+        }
+      },
+      isToggled: () => {
+        const nb = notebookTracker.currentWidget;
+        if (nb && notebookExtension) {
+          const handler = notebookExtension.getToolbarsHandler(nb);
+          if (handler) {
+            return handler.isActive;
+          }
+        }
+        return false;
+      }
+    });
+  }
 };
 
-export default extension;
+/**
+ * Notebook tools plugin
+ */
+const nbTools: JupyterFrontEndPlugin<void> = {
+  id: `${EXTENSION_ID}:tools`,
+  autoStart: true,
+  activate: async (
+    app: JupyterFrontEnd,
+    notebookTools: INotebookTools,
+    translator: ITranslator | null
+  ) => {
+    notebookTools.addItem({
+      tool: new AttachmentsTool(translator ?? nullTranslator),
+      section: 'common'
+    });
+  },
+  optional: [ITranslator],
+  requires: [INotebookTools]
+};
+
+export default [extension, nbTools];

@@ -1,12 +1,12 @@
 import { LabIcon } from '@jupyterlab/ui-components';
 import { Message } from '@lumino/messaging';
 import { Widget } from '@lumino/widgets';
-import { ICellMenuItem } from './tokens';
+import { CellToolbar } from './tokens';
 
 /**
  * Constructor options for PositionedButton
  */
-export interface IPositionedButton extends Omit<ICellMenuItem, 'command'> {
+export interface IPositionedButton extends Omit<CellToolbar.IButton, 'command'> {
   /**
    * Button callback
    */

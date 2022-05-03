@@ -1,4 +1,4 @@
-import { ToolbarRegistry } from '@jupyterlab/apputils';
+import { IToolbarWidgetRegistry, ToolbarRegistry } from '@jupyterlab/apputils';
 import { Cell, ICellModel } from '@jupyterlab/cells';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { NotebookPanel } from '@jupyterlab/notebook';
@@ -20,12 +20,12 @@ import { JSONExt } from '@lumino/coreutils';
 import { IDisposable } from '@lumino/disposable';
 import { ISignal, Signal } from '@lumino/signaling';
 import { PanelLayout, Widget } from '@lumino/widgets';
-import { CellToolbar } from './celltoolbarwidget';
+import { CellToolbar as CellToolbarWidget } from './celltoolbarwidget';
 import { PositionedButton } from './positionedbutton';
-import { TagsModel } from './tagsmodel';
-import { CellTypeMapping, ICellMenuItem, ICellToolbarConfig } from './tokens';
+import { TagTool } from './tagbar';
+import { CellToolbar, FACTORY_NAME } from './tokens';
 
-const DEFAULT_HELPER_BUTTONS: ICellMenuItem[] = [
+const DEFAULT_HELPER_BUTTONS: CellToolbar.IButton[] = [
   // Originate from @jupyterlab/notebook-extension
   {
     command: 'notebook:run-cell-and-select-next',
@@ -46,6 +46,43 @@ const DEFAULT_HELPER_BUTTONS: ICellMenuItem[] = [
 ];
 
 /**
+ * Default toolbar definition
+ */
+export const DEFAULT_TOOLBAR: (ISettingRegistry.IToolbarItem & {
+  cellType?: 'code' | 'markdown' | 'raw';
+})[] = [
+  {
+    name: 'markdown-to-code',
+    cellType: 'markdown',
+    command: 'notebook:change-cell-to-code',
+    icon: 'ui-components:code'
+  },
+  {
+    name: 'code-to-markdown',
+    cellType: 'code',
+    command: 'notebook:change-cell-to-markdown',
+    icon: 'ui-components:markdown'
+  },
+  // Not available by default
+  // {
+  //   name: 'format-code',
+  //   cellType: 'code',
+  //   command: 'jupyterlab_code_formatter:format',
+  //   icon: '@jlab-enhanced/cell-toolbar:format',
+  //   tooltip: 'Format Cell'
+  // },
+  {
+    name: 'delete-cell',
+    command: 'notebook:delete-cell',
+    icon: 'ui-components:delete'
+  },
+  {
+    name: 'spacer',
+    type: 'spacer'
+  }
+];
+
+/**
  * Widget cell toolbar class
  */
 const CELL_BAR_CLASS = 'jp-enh-cell-bar';
@@ -62,7 +99,8 @@ export class CellToolbarTracker implements IDisposable {
     ) =>
       | IObservableList<ToolbarRegistry.IToolbarItem>
       | ToolbarRegistry.IToolbarItem[],
-    configuration: ICellToolbarConfig = {
+    protected toolbarRegistry: IToolbarWidgetRegistry,
+    configuration: CellToolbar.IConfig = {
       defaultTags: [],
       floatPosition: null,
       helperButtons: [
@@ -77,6 +115,13 @@ export class CellToolbarTracker implements IDisposable {
   ) {
     this._disposed = new Signal<CellToolbarTracker, void>(this);
     this._config = JSONExt.deepCopy(configuration as any);
+    this._viewConfig = {};
+
+    const k = Object.keys(this._config.cellType);
+    for (const item of Object.values(CellToolbar.ViewItems)) {
+      this._viewConfig[item] = k.includes(item);
+    }
+
     // // Add lock tag button
     // this._unlockTagsButton = new ToggleButton({
     //   className: (): string => 'jp-enh-cell-nb-button',
@@ -106,6 +151,9 @@ export class CellToolbarTracker implements IDisposable {
     //   this._unlockTagsButton
     // );
 
+    // Initialize styling
+    this.isActive = true;
+
     const cells = this.panel.context.model.cells;
     cells.changed.connect(this.updateConnectedCells, this);
 
@@ -115,12 +163,18 @@ export class CellToolbarTracker implements IDisposable {
   /**
    * Cell toolbar configuration
    */
-  get configuration(): ICellToolbarConfig {
+  get configuration(): CellToolbar.IConfig {
     return JSONExt.deepCopy(this._config as any);
   }
-  set configuration(v: ICellToolbarConfig) {
+  set configuration(v: CellToolbar.IConfig) {
     if (!JSONExt.deepEqual(v as any, this._config as any)) {
       this._config = { ...this._config, ...JSONExt.deepCopy(v as any) };
+      const items = Object.keys(this._config.cellType);
+      for (const value of Object.values(CellToolbar.ViewItems)) {
+        if (items.includes(value)) {
+          this.setViewState(value, true);
+        }
+      }
       this._onConfigChanged();
     }
   }
@@ -130,6 +184,27 @@ export class CellToolbarTracker implements IDisposable {
    */
   get disposed(): ISignal<CellToolbarTracker, void> {
     return this._disposed;
+  }
+
+  /**
+   * Whether the toolbars should be displayed or not.
+   */
+  get isActive(): boolean {
+    return this._isActive;
+  }
+  set isActive(v: boolean) {
+    if (this._isActive !== v) {
+      this._isActive = v;
+      const cells = this.panel.context.model.cells;
+      if (cells) {
+        if (this._isActive) {
+          each(cells.iter(), model => this._addToolbar(model));
+        } else {
+          each(cells.iter(), model => this._removeToolbar(model));
+        }
+      }
+    }
+    this.panel.content.node.setAttribute('data-jp-enh-cell-toolbar', `${v}`);
   }
 
   /**
@@ -159,6 +234,22 @@ export class CellToolbarTracker implements IDisposable {
     Signal.clearData(this);
   }
 
+  getViewState(state: string): boolean {
+    return this._viewConfig[state] ?? true;
+  }
+
+  setViewState(state: CellToolbar.ViewItems, v: boolean): void {
+    if (this._viewConfig[state] === undefined) {
+      // Bail early
+      console.warn(`Try to set unknown state '${state}'`);
+      return;
+    }
+    if (this._viewConfig[state] !== v) {
+      this._viewConfig[state] = v;
+      this._onConfigChanged();
+    }
+  }
+
   /**
    * Callback to react to cells list changes
    *
@@ -169,8 +260,10 @@ export class CellToolbarTracker implements IDisposable {
     cells: IObservableUndoableList<ICellModel>,
     changed: IObservableList.IChangedArgs<ICellModel>
   ): void {
-    changed.oldValues.forEach(model => this._removeToolbar(model));
-    changed.newValues.forEach(model => this._addToolbar(model));
+    if (this.isActive) {
+      changed.oldValues.forEach(model => this._removeToolbar(model));
+      changed.newValues.forEach(model => this._addToolbar(model));
+    }
   }
 
   private _addToolbar(model: ICellModel): void {
@@ -186,16 +279,18 @@ export class CellToolbarTracker implements IDisposable {
       //   // this._unlockTagsButton.toggled
       // ));
 
-      const toolbar = new CellToolbar(leftSpace ?? 0, floatPosition);
+      const toolbar = new CellToolbarWidget(leftSpace ?? 0, floatPosition);
       this._setToolbar(cell, toolbar);
       toolbar.addClass(CELL_BAR_CLASS);
       (cell.layout as PanelLayout).insertWidget(0, toolbar);
 
-      DEFAULT_HELPER_BUTTONS.filter(entry =>
-        (helperButtons as string[]).includes(entry.command.split(':')[1])
+      DEFAULT_HELPER_BUTTONS.filter(
+        entry =>
+          (helperButtons as string[]).includes(entry.command.split(':')[1]) &&
+          (entry.cellType === undefined || entry.cellType === cell.model.type)
       ).forEach(entry => {
         if (this.commands.hasCommand(entry.command)) {
-          const { cellType, command, tooltip, ...others } = entry;
+          const { command, tooltip, ...others } = entry;
           const shortName = command.split(':')[1];
           const button = new PositionedButton({
             ...others,
@@ -206,7 +301,6 @@ export class CellToolbarTracker implements IDisposable {
             tooltip: tooltip || this.commands.label(entry.command)
           });
           button.addClass(CELL_BAR_CLASS);
-          button.addClass(`jp-enh-cell-${cellType || 'all'}`);
           (cell.layout as PanelLayout).addWidget(button);
         }
       });
@@ -228,28 +322,28 @@ export class CellToolbarTracker implements IDisposable {
     const cell = this._getCell(model);
     if (cell) {
       this._findToolbarWidgets(cell).forEach(widget => widget.dispose());
-      if (this._tagsModels[model.id]) {
-        this._tagsModels[model.id].dispose();
-        delete this._tagsModels[model.id];
-      }
     }
   }
 
   /**
    * Set the toolbar items of a cell
    */
-  private _setToolbar(cell: Cell, toolbar: CellToolbar): void {
+  private _setToolbar(cell: Cell, toolbar: CellToolbarWidget): void {
     const cellType = cell.model.type;
     const items = this.cellToolbarFactory(cell);
 
     if (Array.isArray(items)) {
-      items.forEach(({ name, widget }) => {
-        const itemType = this.configuration.cellType[name];
-        if (itemType && itemType !== cellType) {
-          widget.hide();
-        }
-        toolbar.addItem(name, widget);
-      });
+      items
+        .filter(({ name }) => {
+          const itemType = this.configuration.cellType[name];
+          return (
+            this.getViewState(name) &&
+            (typeof itemType !== 'string' || itemType === cellType)
+          );
+        })
+        .forEach(({ name, widget }) => {
+          toolbar.addItem(name, widget);
+        });
     } else {
       const updateToolbar = (
         list: IObservableList<ToolbarRegistry.IToolbarItem>,
@@ -259,9 +353,15 @@ export class CellToolbarTracker implements IDisposable {
           case 'add':
             changes.newValues.forEach((item, index) => {
               const itemType = this.configuration.cellType[item.name];
-              if (itemType && itemType !== cellType) {
+              if (
+                this.getViewState(item.name) === false ||
+                (itemType && itemType !== cellType)
+              ) {
                 item.widget.hide();
+              } else if (item.name === CellToolbar.ViewItems.TAGS) {
+                (item.widget as TagTool).model.tags = this._allTags;
               }
+
               toolbar.insertItem(
                 changes.newIndex + index,
                 item.name,
@@ -303,6 +403,8 @@ export class CellToolbarTracker implements IDisposable {
               const itemType = this.configuration.cellType[item.name];
               if (itemType && itemType !== cellType) {
                 item.widget.hide();
+              } else if (item.name === CellToolbar.ViewItems.TAGS) {
+                (item.widget as TagTool).model.tags = this._allTags;
               }
 
               toolbar.insertItem(
@@ -328,6 +430,16 @@ export class CellToolbarTracker implements IDisposable {
         items.changed.disconnect(updateToolbar);
       });
     }
+
+    const currentItems = toArray(toolbar.names());
+    for (const state in this._viewConfig) {
+      if (this._viewConfig[state] && !currentItems.includes(state)) {
+        toolbar.addItem(
+          state,
+          this.toolbarRegistry.createWidget(FACTORY_NAME, cell, { name: state })
+        );
+      }
+    }
   }
 
   /**
@@ -341,6 +453,11 @@ export class CellToolbarTracker implements IDisposable {
    * Call back on configuration changes
    */
   private _onConfigChanged(): void {
+    if (!this.isActive) {
+      // Bail early
+      return;
+    }
+
     // Reset toolbar when settings changes
     if (this.panel?.context.model.cells) {
       each(this.panel?.context.model.cells.iter(), model => {
@@ -366,11 +483,12 @@ export class CellToolbarTracker implements IDisposable {
 
   private _allTags = new ObservableList<string>();
   private _disposed: Signal<CellToolbarTracker, void>;
+  private _isActive = true;
   private _isDisposed = false;
   private _previousDefaultTags = new Array<string>();
-  private _tagsModels: { [id: string]: TagsModel } = {};
   // private _unlockTagsButton: ToggleButton;
-  private _config: ICellToolbarConfig;
+  private _config: CellToolbar.IConfig;
+  private _viewConfig: { [name: string]: boolean };
 }
 
 /**
@@ -385,15 +503,21 @@ export class CellBarExtension implements DocumentRegistry.WidgetExtension {
     ) =>
       | IObservableList<ToolbarRegistry.IToolbarItem>
       | ToolbarRegistry.IToolbarItem[],
+    protected toolbarRegistry: IToolbarWidgetRegistry,
     protected settings: ISettingRegistry.ISettings | null
-  ) {}
+  ) {
+    this._toolbarMap = new WeakMap<NotebookPanel, CellToolbarTracker>();
+  }
 
   createNew(panel: NotebookPanel): IDisposable {
     const toolbarTracker = new CellToolbarTracker(
       panel,
       this.commands,
-      this.cellToolbarFactory
+      this.cellToolbarFactory,
+      this.toolbarRegistry
     );
+
+    this._toolbarMap.set(panel, toolbarTracker);
 
     if (this.settings) {
       const onSettingsChanged = (
@@ -407,10 +531,12 @@ export class CellBarExtension implements DocumentRegistry.WidgetExtension {
           config: any;
         };
 
-        const cellType: CellTypeMapping = {};
-        toolbar.forEach(item => {
-          cellType[item.name] = item.cellType;
-        });
+        const cellType: CellToolbar.CellTypeMapping = {};
+        toolbar
+          .filter(item => !item.disabled)
+          .forEach(item => {
+            cellType[item.name] = item.cellType ?? null;
+          });
 
         toolbarTracker.configuration = {
           ...config,
@@ -422,8 +548,30 @@ export class CellBarExtension implements DocumentRegistry.WidgetExtension {
         this.settings?.changed.disconnect(onSettingsChanged);
       });
       this.settings?.changed.connect(onSettingsChanged);
+    } else {
+      const cellType: CellToolbar.CellTypeMapping = {};
+      DEFAULT_TOOLBAR.forEach(item => {
+        cellType[item.name] = item.cellType ?? null;
+      });
+
+      toolbarTracker.configuration = {
+        ...toolbarTracker.configuration,
+        cellType
+      } as any;
     }
 
     return toolbarTracker;
   }
+
+  /**
+   * Get the cell toolbars handler for a notebook
+   *
+   * @param panel Notebook
+   * @returns The cell toolbars handler
+   */
+  getToolbarsHandler(panel: NotebookPanel): CellToolbarTracker | undefined {
+    return this._toolbarMap.get(panel);
+  }
+
+  private _toolbarMap: WeakMap<NotebookPanel, CellToolbarTracker>;
 }
