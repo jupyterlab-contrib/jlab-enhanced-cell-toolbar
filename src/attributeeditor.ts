@@ -208,7 +208,7 @@ export class AttributeEditor extends Widget {
     changes: IObservableMap.IChangedArgs<any>
   ): void {
     if (this.keys.includes(changes.key)) {
-      let value = this._getValue(changes.key);
+      const value = this._getValue(changes.key);
       if (value === undefined) {
         this.selectNode.value = this.noValue ? this.noValue : '';
       } else {
