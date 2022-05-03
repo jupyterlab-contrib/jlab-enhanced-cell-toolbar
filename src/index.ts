@@ -24,6 +24,8 @@ import { TagTool } from './tagbar';
 import { TagsModel } from './tagsmodel';
 import { CellToolbar, EXTENSION_ID, FACTORY_NAME } from './tokens';
 
+const DEFAULT_TOOLBAR_ITEM_RANK = 50;
+
 /**
  * Export the icons so they got loaded
  */
@@ -464,6 +466,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       const current = settings.composite as any;
       let wasUpgraded = false;
       const toolbarDefinition: ISettingRegistry.IToolbarItem[] = [];
+      let rank = 0;
       if (current['leftMenu']) {
         wasUpgraded = true;
         (current['leftMenu'] as CellToolbar.IButton[]).forEach(item => {
@@ -471,16 +474,21 @@ const extension: JupyterFrontEndPlugin<void> = {
             toolbarDefinition.push({
               name: [item.command.split(':')[1], item.cellType].join('-'),
               command: item.command,
-              icon: iconsMapping[item.icon as string] ?? item.icon
+              icon: iconsMapping[item.icon as string] ?? item.icon,
+              rank: rank++
             });
           }
         });
         await settings.remove('leftMenu');
       }
-      toolbarDefinition.push({ name: 'spacer', type: 'spacer' });
+      rank = Math.max(rank, DEFAULT_TOOLBAR_ITEM_RANK);
+      toolbarDefinition.push({ name: 'spacer', type: 'spacer', rank });
       if (current['showTags']) {
         wasUpgraded = true;
-        toolbarDefinition.push({ name: CellToolbar.ViewItems.TAGS });
+        toolbarDefinition.push({
+          name: CellToolbar.ViewItems.TAGS,
+          rank: rank++
+        });
         await settings.remove('showTags');
       }
       if (current['rightMenu']) {
@@ -490,14 +498,28 @@ const extension: JupyterFrontEndPlugin<void> = {
             toolbarDefinition.push({
               name: [item.command.split(':')[1], item.cellType].join('-'),
               command: item.command,
-              icon: iconsMapping[item.icon as string] ?? item.icon
+              icon: iconsMapping[item.icon as string] ?? item.icon,
+              rank: rank++
             });
           }
         });
         await settings.remove('rightMenu');
       }
       if (wasUpgraded) {
+        // Disabled default toolbar items
+        const names = toolbarDefinition.map(t => t.name);
+        for (const item of DEFAULT_TOOLBAR) {
+          if (!names.includes(item.name)) {
+            toolbarDefinition.push({ name: item.name, disabled: true });
+          }
+        }
         await settings.set('toolbar', toolbarDefinition);
+        await showDialog({
+          title: 'Information',
+          body: trans.__(
+            'The toolbar extension has been upgraded. You need to refresh the web page to take into account the new configuration.'
+          )
+        });
       }
     }
   }
